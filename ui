@@ -310,19 +310,28 @@ function MaterialUI:CreateWindow(config)
     tabHeaderFrame.Visible = false
     tabHeaderFrame.Parent = mainContainer
 
+    -- Isolated holder for buttons so UIListLayout doesn't interact with the divider!
+    local tabButtonsHolder = Instance.new("Frame")
+    tabButtonsHolder.Name = "ButtonsHolder"
+    tabButtonsHolder.Size = UDim2.fromScale(1, 1)
+    tabButtonsHolder.BackgroundTransparency = 1
+    tabButtonsHolder.ZIndex = 6
+    tabButtonsHolder.Parent = tabHeaderFrame
+
     local tabHeaderPadding = Instance.new("UIPadding")
     tabHeaderPadding.PaddingLeft = UDim.new(0, 14)
     tabHeaderPadding.PaddingRight = UDim.new(0, 14)
-    tabHeaderPadding.Parent = tabHeaderFrame
+    tabHeaderPadding.Parent = tabButtonsHolder
 
     local tabHeaderList = Instance.new("UIListLayout")
     tabHeaderList.SortOrder = Enum.SortOrder.LayoutOrder
     tabHeaderList.FillDirection = Enum.FillDirection.Horizontal
-    tabHeaderList.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    tabHeaderList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     tabHeaderList.VerticalAlignment = Enum.VerticalAlignment.Center
     tabHeaderList.Padding = UDim.new(0, 8)
-    tabHeaderList.Parent = tabHeaderFrame
+    tabHeaderList.Parent = tabButtonsHolder
 
+    -- Divider line under tab bar (independent of the buttons UIListLayout)
     local tabDivider = Instance.new("Frame")
     tabDivider.Name = "TabDivider"
     tabDivider.AnchorPoint = Vector2.new(0.5, 1)
@@ -330,7 +339,7 @@ function MaterialUI:CreateWindow(config)
     tabDivider.Size = UDim2.new(1, 0, 0, 1)
     tabDivider.BorderSizePixel = 0
     tabDivider.BackgroundColor3 = theme.outlineVariant
-    tabDivider.ZIndex = 6
+    tabDivider.ZIndex = 7
     tabDivider.Parent = tabHeaderFrame
 
     -- Main Content Area
@@ -383,7 +392,7 @@ function MaterialUI:CreateWindow(config)
         tabButton.AutoButtonColor = false
         tabButton.LayoutOrder = #WindowObj.Tabs + 1
         tabButton.ZIndex = 6
-        tabButton.Parent = tabHeaderFrame
+        tabButton.Parent = tabButtonsHolder
 
         local tabBtnCorner = Instance.new("UICorner")
         tabBtnCorner.CornerRadius = UDim.new(0, 16)
