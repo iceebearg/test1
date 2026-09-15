@@ -1,8 +1,8 @@
 --[[
     Roblox Material Design 3 UI Library (Client / Executor Edition)
-    Based on roblox-material-ui components (UIBase, SwitchTile, SliderTile, ColorTile, Topbar, SectionTitle)
+    Exact 1:1 Pixel-Perfect Replica of roblox-material-ui
     
-    Compatible with loadstring, client scripts, executors (gethui / CoreGui / PlayerGui)
+    Colors, proportions, icons, and components extracted directly from the original Material Design 3 theme.
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -12,7 +12,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local MaterialUI = {
-    Version = "1.0.0",
+    Version = "1.1.0",
     Windows = {},
     Icons = {
         DarkTheme = "rbxassetid://8898846928",
@@ -78,34 +78,35 @@ local function ApplyFont(label, weight)
     end)
 end
 
--- Theme generator
-local function CreateTheme(primaryColor)
-    primaryColor = primaryColor or Color3.fromRGB(255, 110, 40)
+-- Exact Material Design 3 Palette (matched to the original Settings Menu)
+local function GetTheme(customPrimary)
+    local primary = customPrimary or Color3.fromRGB(255, 182, 140) -- Exact original peach/salmon
     return {
-        background = Color3.fromRGB(24, 25, 29),
-        surface = Color3.fromRGB(31, 32, 37),
-        surfaceVariant = Color3.fromRGB(43, 45, 52),
-        onBackground = Color3.fromRGB(228, 228, 233),
-        onSurface = Color3.fromRGB(228, 228, 233),
-        onSurfaceVariant = Color3.fromRGB(155, 158, 168),
-        outline = Color3.fromRGB(72, 75, 84),
-        outlineVariant = Color3.fromRGB(50, 52, 60),
-        primary = primaryColor,
-        onPrimary = Color3.fromRGB(25, 10, 2),
-        primaryContainer = Color3.fromRGB(70, 32, 14),
-        secondaryContainer = Color3.fromRGB(50, 52, 62),
-        onSecondaryContainer = Color3.fromRGB(218, 220, 230),
+        background = Color3.fromRGB(32, 26, 23),          -- Exact original warm espresso dark
+        surface = Color3.fromRGB(38, 31, 27),
+        surfaceVariant = Color3.fromRGB(68, 54, 49),
+        onBackground = Color3.fromRGB(236, 224, 219),     -- Off-white text and icons
+        onSurface = Color3.fromRGB(236, 224, 219),
+        onSurfaceVariant = Color3.fromRGB(160, 141, 132), -- Muted description text
+        outline = Color3.fromRGB(137, 120, 113),          -- Border outline
+        outlineVariant = Color3.fromRGB(68, 54, 49),
+        primary = primary,                                -- Pastel peach accent
+        onPrimary = Color3.fromRGB(85, 33, 0),            -- Deep dark brown (switch thumb)
+        primaryContainer = Color3.fromRGB(95, 42, 10),
+        secondaryContainer = Color3.fromRGB(70, 52, 45),  -- Slider background rail
+        onSecondaryContainer = Color3.fromRGB(236, 224, 219),
     }
 end
 
 function MaterialUI:CreateWindow(config)
     config = config or {}
     local windowTitle = config.Title or "Settings"
-    local windowSubtitle = config.Subtitle or ""
-    local primaryColor = config.AccentColor or config.Color or Color3.fromRGB(255, 110, 40)
+    local windowSubtitle = config.Subtitle
+    local primaryColor = config.AccentColor or config.Color or Color3.fromRGB(255, 182, 140)
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightShift
-    local size = config.Size or UDim2.fromOffset(560, 480)
-    local theme = CreateTheme(primaryColor)
+    -- Exact original proportions: 375 width by 410 height
+    local size = config.Size or UDim2.fromOffset(375, 410)
+    local theme = GetTheme(primaryColor)
 
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "MaterialUI_" .. windowTitle:gsub("%s+", "")
@@ -138,7 +139,7 @@ function MaterialUI:CreateWindow(config)
     shadow.ZIndex = 1
     shadow.Parent = outerContainer
 
-    -- Main Card Container (CanvasGroup with rounded corners)
+    -- Main Card Container (CanvasGroup with 16px rounded corners)
     local mainContainer = Instance.new("CanvasGroup")
     mainContainer.Name = "InnerContainer"
     mainContainer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -153,140 +154,69 @@ function MaterialUI:CreateWindow(config)
     mainCorner.CornerRadius = UDim.new(0, 16)
     mainCorner.Parent = mainContainer
 
-    -- Border outline stroke
     local mainStroke = Instance.new("UIStroke")
     mainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     mainStroke.Color = theme.outlineVariant
     mainStroke.Thickness = 1
+    mainStroke.Transparency = 0.5
     mainStroke.Parent = mainContainer
 
-    -- Topbar (Material 3 Top App Bar)
+    -- Topbar (Material 3 Center-Aligned Top App Bar)
     local topbar = Instance.new("Frame")
     topbar.Name = "Topbar"
     topbar.AnchorPoint = Vector2.new(0.5, 0)
     topbar.Position = UDim2.fromScale(0.5, 0)
-    topbar.Size = UDim2.new(1, 0, 0, 56)
+    topbar.Size = UDim2.new(1, 0, 0, 48)
     topbar.BackgroundTransparency = 1
     topbar.Parent = mainContainer
 
-    local topbarPadding = Instance.new("UIPadding")
-    topbarPadding.PaddingLeft = UDim.new(0, 18)
-    topbarPadding.PaddingRight = UDim.new(0, 14)
-    topbarPadding.Parent = topbar
-
-    -- Leading icon / branding
-    local leadingHolder = Instance.new("Frame")
-    leadingHolder.Name = "Leading"
-    leadingHolder.AnchorPoint = Vector2.new(0, 0.5)
-    leadingHolder.Position = UDim2.fromScale(0, 0.5)
-    leadingHolder.Size = UDim2.new(0, 32, 0, 32)
-    leadingHolder.BackgroundTransparency = 1
-    leadingHolder.Parent = topbar
-
-    local leadingIcon = Instance.new("ImageLabel")
-    leadingIcon.Name = "Icon"
-    leadingIcon.Size = UDim2.fromOffset(24, 24)
-    leadingIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-    leadingIcon.Position = UDim2.fromScale(0.5, 0.5)
-    leadingIcon.BackgroundTransparency = 1
-    leadingIcon.Image = config.Icon or MaterialUI.Icons.Settings
-    leadingIcon.ImageColor3 = theme.primary
-    leadingIcon.Parent = leadingHolder
-
-    -- Title and subtitle container
-    local titleHolder = Instance.new("Frame")
-    titleHolder.Name = "TitleHolder"
-    titleHolder.AnchorPoint = Vector2.new(0, 0.5)
-    titleHolder.Position = UDim2.new(0, 38, 0.5, 0)
-    titleHolder.Size = UDim2.new(0.6, -38, 0.8, 0)
-    titleHolder.BackgroundTransparency = 1
-    titleHolder.Parent = topbar
-
-    local titleList = Instance.new("UIListLayout")
-    titleList.SortOrder = Enum.SortOrder.LayoutOrder
-    titleList.FillDirection = Enum.FillDirection.Vertical
-    titleList.VerticalAlignment = Enum.VerticalAlignment.Center
-    titleList.Padding = UDim.new(0, 1)
-    titleList.Parent = titleHolder
-
+    -- Centered Title
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, 0, 0, 22)
+    titleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    titleLabel.Position = UDim2.fromScale(0.5, 0.5)
+    titleLabel.Size = UDim2.new(0.7, 0, 0, 24)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = windowTitle
     titleLabel.TextColor3 = theme.onBackground
     titleLabel.TextSize = 18
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
     ApplyFont(titleLabel, "Bold")
-    titleLabel.LayoutOrder = 1
-    titleLabel.Parent = titleHolder
+    titleLabel.Parent = topbar
 
-    if windowSubtitle ~= "" then
+    if windowSubtitle and windowSubtitle ~= "" then
+        titleLabel.Position = UDim2.new(0.5, 0, 0.5, -6)
         local subtitleLabel = Instance.new("TextLabel")
         subtitleLabel.Name = "Subtitle"
-        subtitleLabel.Size = UDim2.new(1, 0, 0, 14)
+        subtitleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+        subtitleLabel.Position = UDim2.new(0.5, 0, 0.5, 12)
+        subtitleLabel.Size = UDim2.new(0.7, 0, 0, 14)
         subtitleLabel.BackgroundTransparency = 1
         subtitleLabel.Text = windowSubtitle
         subtitleLabel.TextColor3 = theme.onSurfaceVariant
-        subtitleLabel.TextSize = 12
-        subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        subtitleLabel.TextSize = 11
+        subtitleLabel.TextXAlignment = Enum.TextXAlignment.Center
         ApplyFont(subtitleLabel, "Regular")
-        subtitleLabel.LayoutOrder = 2
-        subtitleLabel.Parent = titleHolder
+        subtitleLabel.Parent = topbar
     end
 
-    -- Trailing buttons holder (Close & Minimize)
-    local trailing = Instance.new("Frame")
-    trailing.Name = "Trailing"
-    trailing.AnchorPoint = Vector2.new(1, 0.5)
-    trailing.Position = UDim2.fromScale(1, 0.5)
-    trailing.Size = UDim2.new(0, 76, 0, 36)
-    trailing.BackgroundTransparency = 1
-    trailing.Parent = topbar
+    -- Close Button ('X' icon on top right)
+    local closeBtn = Instance.new("ImageButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.AnchorPoint = Vector2.new(1, 0.5)
+    closeBtn.Position = UDim2.new(1, -14, 0.5, 0)
+    closeBtn.Size = UDim2.fromOffset(24, 24)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Image = MaterialUI.Icons.Close
+    closeBtn.ImageColor3 = theme.onBackground
+    closeBtn.Parent = topbar
 
-    local trailingList = Instance.new("UIListLayout")
-    trailingList.SortOrder = Enum.SortOrder.LayoutOrder
-    trailingList.FillDirection = Enum.FillDirection.Horizontal
-    trailingList.HorizontalAlignment = Enum.HorizontalAlignment.Right
-    trailingList.VerticalAlignment = Enum.VerticalAlignment.Center
-    trailingList.Padding = UDim.new(0, 6)
-    trailingList.Parent = trailing
-
-    local function CreateIconButton(name, iconId, layoutOrder, onClick)
-        local btn = Instance.new("TextButton")
-        btn.Name = name
-        btn.Size = UDim2.fromOffset(34, 34)
-        btn.BackgroundColor3 = theme.onBackground
-        btn.BackgroundTransparency = 1
-        btn.AutoButtonColor = false
-        btn.Text = ""
-        btn.LayoutOrder = layoutOrder
-        btn.Parent = trailing
-
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(1, 0)
-        btnCorner.Parent = btn
-
-        local btnIcon = Instance.new("ImageLabel")
-        btnIcon.Size = UDim2.fromOffset(18, 18)
-        btnIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-        btnIcon.Position = UDim2.fromScale(0.5, 0.5)
-        btnIcon.BackgroundTransparency = 1
-        btnIcon.Image = iconId
-        btnIcon.ImageColor3 = theme.onSurfaceVariant
-        btnIcon.Parent = btn
-
-        btn.MouseEnter:Connect(function()
-            Tween(btn, TweenInfo.new(0.18), { BackgroundTransparency = 0.9 })
-            Tween(btnIcon, TweenInfo.new(0.18), { ImageColor3 = theme.onBackground })
-        end)
-        btn.MouseLeave:Connect(function()
-            Tween(btn, TweenInfo.new(0.18), { BackgroundTransparency = 1 })
-            Tween(btnIcon, TweenInfo.new(0.18), { ImageColor3 = theme.onSurfaceVariant })
-        end)
-        btn.MouseButton1Click:Connect(onClick)
-        return btn
-    end
+    closeBtn.MouseEnter:Connect(function()
+        Tween(closeBtn, TweenInfo.new(0.18), { ImageColor3 = theme.primary })
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        Tween(closeBtn, TweenInfo.new(0.18), { ImageColor3 = theme.onBackground })
+    end)
 
     -- Divider line under topbar
     local divider = Instance.new("Frame")
@@ -304,24 +234,24 @@ function MaterialUI:CreateWindow(config)
         isWindowOpen = visible
         if visible then
             outerContainer.Visible = true
-            Tween(mainContainer, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Tween(mainContainer, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 GroupTransparency = 0
             })
-            Tween(shadow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Tween(shadow, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 ImageTransparency = 0.35
             })
-            Tween(outerContainer, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Tween(outerContainer, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 Size = size
             })
         else
-            Tween(mainContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            Tween(mainContainer, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
                 GroupTransparency = 1
             })
-            Tween(shadow, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            Tween(shadow, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
                 ImageTransparency = 1
             })
-            local tw = Tween(outerContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-                Size = UDim2.new(size.X.Scale, size.X.Offset * 0.95, size.Y.Scale, size.Y.Offset * 0.95)
+            local tw = Tween(outerContainer, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+                Size = UDim2.new(size.X.Scale, size.X.Offset * 0.94, size.Y.Scale, size.Y.Offset * 0.94)
             })
             tw.Completed:Connect(function()
                 if not isWindowOpen then
@@ -331,7 +261,7 @@ function MaterialUI:CreateWindow(config)
         end
     end
 
-    CreateIconButton("CloseBtn", MaterialUI.Icons.Close, 2, function()
+    closeBtn.MouseButton1Click:Connect(function()
         SetWindowVisible(false)
     end)
 
@@ -353,32 +283,32 @@ function MaterialUI:CreateWindow(config)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
-            Tween(outerContainer, TweenInfo.new(0.06, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+            Tween(outerContainer, TweenInfo.new(0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
                 Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             })
         end
     end)
 
-    -- Toggle keybind (default RightShift)
+    -- Toggle keybind
     UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey then
             SetWindowVisible(not isWindowOpen)
         end
     end)
 
-    -- Tabs Header & Container System
+    -- Tabs Header (Only appears if multiple tabs exist)
     local tabHeaderFrame = Instance.new("Frame")
     tabHeaderFrame.Name = "TabHeader"
     tabHeaderFrame.AnchorPoint = Vector2.new(0.5, 0)
-    tabHeaderFrame.Position = UDim2.new(0.5, 0, 0, 56)
-    tabHeaderFrame.Size = UDim2.new(1, 0, 0, 42)
+    tabHeaderFrame.Position = UDim2.new(0.5, 0, 0, 48)
+    tabHeaderFrame.Size = UDim2.new(1, 0, 0, 38)
     tabHeaderFrame.BackgroundTransparency = 1
     tabHeaderFrame.Visible = false
     tabHeaderFrame.Parent = mainContainer
 
     local tabHeaderPadding = Instance.new("UIPadding")
-    tabHeaderPadding.PaddingLeft = UDim.new(0, 16)
-    tabHeaderPadding.PaddingRight = UDim.new(0, 16)
+    tabHeaderPadding.PaddingLeft = UDim.new(0, 14)
+    tabHeaderPadding.PaddingRight = UDim.new(0, 14)
     tabHeaderPadding.Parent = tabHeaderFrame
 
     local tabHeaderList = Instance.new("UIListLayout")
@@ -402,7 +332,7 @@ function MaterialUI:CreateWindow(config)
     contentHolder.Name = "ContentHolder"
     contentHolder.AnchorPoint = Vector2.new(0.5, 1)
     contentHolder.Position = UDim2.fromScale(0.5, 1)
-    contentHolder.Size = UDim2.new(1, 0, 1, -56)
+    contentHolder.Size = UDim2.new(1, 0, 1, -49)
     contentHolder.BackgroundTransparency = 1
     contentHolder.Parent = mainContainer
 
@@ -431,16 +361,15 @@ function MaterialUI:CreateWindow(config)
     function WindowObj:CreateTab(tabName, tabIcon)
         tabName = tabName or "General"
         
-        -- Show tab bar once we have multiple tabs
         if #WindowObj.Tabs >= 1 then
             tabHeaderFrame.Visible = true
-            contentHolder.Size = UDim2.new(1, 0, 1, -98)
+            contentHolder.Size = UDim2.new(1, 0, 1, -87)
         end
 
         local tabButton = Instance.new("TextButton")
         tabButton.Name = "TabBtn_" .. tabName
         tabButton.AutomaticSize = Enum.AutomaticSize.X
-        tabButton.Size = UDim2.new(0, 0, 0, 30)
+        tabButton.Size = UDim2.new(0, 0, 0, 28)
         tabButton.BackgroundColor3 = theme.surfaceVariant
         tabButton.BackgroundTransparency = 1
         tabButton.Text = ""
@@ -453,8 +382,8 @@ function MaterialUI:CreateWindow(config)
         tabBtnCorner.Parent = tabButton
 
         local tabBtnPadding = Instance.new("UIPadding")
-        tabBtnPadding.PaddingLeft = UDim.new(0, 14)
-        tabBtnPadding.PaddingRight = UDim.new(0, 14)
+        tabBtnPadding.PaddingLeft = UDim.new(0, 12)
+        tabBtnPadding.PaddingRight = UDim.new(0, 12)
         tabBtnPadding.Parent = tabButton
 
         local tabContentLayout = Instance.new("UIListLayout")
@@ -490,25 +419,25 @@ function MaterialUI:CreateWindow(config)
         scrollPage.Size = UDim2.fromScale(1, 1)
         scrollPage.BackgroundTransparency = 1
         scrollPage.BorderSizePixel = 0
-        scrollPage.ScrollBarThickness = 4
+        scrollPage.ScrollBarThickness = 3
         scrollPage.ScrollBarImageColor3 = theme.outline
-        scrollPage.ScrollBarImageTransparency = 0.5
+        scrollPage.ScrollBarImageTransparency = 0.6
         scrollPage.CanvasSize = UDim2.new(0, 0, 0, 0)
         scrollPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
         scrollPage.Visible = false
         scrollPage.Parent = contentHolder
 
         local pagePadding = Instance.new("UIPadding")
-        pagePadding.PaddingTop = UDim.new(0, 8)
-        pagePadding.PaddingBottom = UDim.new(0, 16)
-        pagePadding.PaddingLeft = UDim.new(0, 8)
-        pagePadding.PaddingRight = UDim.new(0, 8)
+        pagePadding.PaddingTop = UDim.new(0, 6)
+        pagePadding.PaddingBottom = UDim.new(0, 14)
+        pagePadding.PaddingLeft = UDim.new(0, 6)
+        pagePadding.PaddingRight = UDim.new(0, 6)
         pagePadding.Parent = scrollPage
 
         local pageLayout = Instance.new("UIListLayout")
         pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
         pageLayout.FillDirection = Enum.FillDirection.Vertical
-        pageLayout.Padding = UDim.new(0, 2)
+        pageLayout.Padding = UDim.new(0, 0)
         pageLayout.Parent = scrollPage
 
         local TabObj = {
@@ -549,13 +478,13 @@ function MaterialUI:CreateWindow(config)
         end
 
         -- ==============================================================
-        -- COMPONENT: SectionTitle
+        -- COMPONENT: SectionTitle ("Theme", "Audio", etc.)
         -- ==============================================================
         function TabObj:CreateSection(text)
             TabObj.ItemCount = TabObj.ItemCount + 1
             local section = Instance.new("Frame")
             section.Name = "Section_" .. text
-            section.Size = UDim2.new(1, 0, 0, 36)
+            section.Size = UDim2.new(1, 0, 0, 34)
             section.BackgroundTransparency = 1
             section.LayoutOrder = TabObj.ItemCount
             section.Parent = scrollPage
@@ -572,8 +501,8 @@ function MaterialUI:CreateWindow(config)
             label.Size = UDim2.new(1, 0, 0, 20)
             label.BackgroundTransparency = 1
             label.Text = text
-            label.TextColor3 = theme.primary
-            label.TextSize = 13
+            label.TextColor3 = theme.primary -- Peach accent color
+            label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Left
             ApplyFont(label, "Bold")
             label.Parent = section
@@ -582,7 +511,7 @@ function MaterialUI:CreateWindow(config)
         end
 
         -- ==============================================================
-        -- COMPONENT: SwitchTile (Material 3 Toggle)
+        -- COMPONENT: SwitchTile (Toggle)
         -- ==============================================================
         function TabObj:CreateToggle(options)
             options = options or {}
@@ -596,7 +525,7 @@ function MaterialUI:CreateWindow(config)
 
             local tile = Instance.new("TextButton")
             tile.Name = "SwitchTile_" .. title
-            tile.Size = UDim2.new(1, 0, 0, desc ~= "" and 68 or 54)
+            tile.Size = UDim2.new(1, 0, 0, desc ~= "" and 68 or 52)
             tile.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             tile.BackgroundTransparency = 1
             tile.AutoButtonColor = false
@@ -612,8 +541,8 @@ function MaterialUI:CreateWindow(config)
             local tilePadding = Instance.new("UIPadding")
             tilePadding.PaddingLeft = UDim.new(0, 16)
             tilePadding.PaddingRight = UDim.new(0, 16)
-            tilePadding.PaddingTop = UDim.new(0, 8)
-            tilePadding.PaddingBottom = UDim.new(0, 8)
+            tilePadding.PaddingTop = UDim.new(0, 10)
+            tilePadding.PaddingBottom = UDim.new(0, 10)
             tilePadding.Parent = tile
 
             -- Left Content Container
@@ -651,11 +580,13 @@ function MaterialUI:CreateWindow(config)
             textHolder.Parent = leftContainer
 
             local textLayout = Instance.new("UIListLayout")
+            textLayout.SortOrder = Enum.SortOrder.LayoutOrder
             textLayout.FillDirection = Enum.FillDirection.Vertical
             textLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             textLayout.Padding = UDim.new(0, 2)
             textLayout.Parent = textHolder
 
+            -- Title MUST be LayoutOrder = 1 (top)
             local titleLabel = Instance.new("TextLabel")
             titleLabel.Name = "Title"
             titleLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -664,9 +595,11 @@ function MaterialUI:CreateWindow(config)
             titleLabel.TextColor3 = theme.onBackground
             titleLabel.TextSize = 15
             titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            titleLabel.LayoutOrder = 1
             ApplyFont(titleLabel, "Bold")
             titleLabel.Parent = textHolder
 
+            -- Description MUST be LayoutOrder = 2 (bottom)
             if desc ~= "" then
                 local descLabel = Instance.new("TextLabel")
                 descLabel.Name = "Description"
@@ -676,6 +609,7 @@ function MaterialUI:CreateWindow(config)
                 descLabel.TextColor3 = theme.onSurfaceVariant
                 descLabel.TextSize = 12
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                descLabel.LayoutOrder = 2
                 ApplyFont(descLabel, "Regular")
                 descLabel.Parent = textHolder
             end
@@ -714,14 +648,16 @@ function MaterialUI:CreateWindow(config)
                 local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
                 if enabled then
+                    -- When ON: Track is peach, Thumb is dark espresso brown
                     Tween(switchTrack, tweenInfo, { BackgroundColor3 = theme.primary })
                     Tween(switchStroke, tweenInfo, { Transparency = 1 })
                     Tween(switchThumb, tweenInfo, {
                         Size = UDim2.fromOffset(22, 22),
                         Position = UDim2.new(1, -25, 0.5, 0),
-                        BackgroundColor3 = theme.onPrimary
+                        BackgroundColor3 = theme.onPrimary -- Color3.fromRGB(85, 33, 0)
                     })
                 else
+                    -- When OFF: Track is surfaceVariant, Thumb is outline
                     Tween(switchTrack, tweenInfo, { BackgroundColor3 = theme.surfaceVariant })
                     Tween(switchStroke, tweenInfo, { Transparency = 0, Color = theme.outline })
                     Tween(switchThumb, tweenInfo, {
@@ -734,16 +670,15 @@ function MaterialUI:CreateWindow(config)
 
             UpdateVisual(false)
 
-            -- Hover feedback on tile
             tile.MouseEnter:Connect(function()
-                Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.95 })
+                Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.96 })
             end)
             tile.MouseLeave:Connect(function()
                 Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 1 })
             end)
 
             local debounce = false
-            local function OnClick()
+            tile.MouseButton1Click:Connect(function()
                 if debounce then return end
                 debounce = true
                 enabled = not enabled
@@ -753,9 +688,7 @@ function MaterialUI:CreateWindow(config)
                     task.spawn(options.ChangedEvent, enabled)
                 end
                 task.delay(0.25, function() debounce = false end)
-            end
-
-            tile.MouseButton1Click:Connect(OnClick)
+            end)
 
             local ToggleObj = {
                 Value = enabled,
@@ -775,204 +708,21 @@ function MaterialUI:CreateWindow(config)
         end
 
         -- ==============================================================
-        -- COMPONENT: SliderTile (Material 3 Slider)
-        -- ==============================================================
-        function TabObj:CreateSlider(options)
-            options = options or {}
-            local title = options.Title or "Slider"
-            local icon = options.Icon
-            local minVal = options.Min or 0
-            local maxVal = options.Max or 100
-            local step = options.Step or 1
-            local defaultVal = math.clamp(options.Default or minVal, minVal, maxVal)
-            local callback = options.Callback or function() end
-            local valueFormat = options.Format or function(v) return tostring(v) end
-
-            TabObj.ItemCount = TabObj.ItemCount + 1
-
-            local tile = Instance.new("Frame")
-            tile.Name = "SliderTile_" .. title
-            tile.Size = UDim2.new(1, 0, 0, 68)
-            tile.BackgroundTransparency = 1
-            tile.LayoutOrder = TabObj.ItemCount
-            tile.Parent = scrollPage
-
-            local tilePadding = Instance.new("UIPadding")
-            tilePadding.PaddingLeft = UDim.new(0, 16)
-            tilePadding.PaddingRight = UDim.new(0, 16)
-            tilePadding.PaddingTop = UDim.new(0, 10)
-            tilePadding.PaddingBottom = UDim.new(0, 8)
-            tilePadding.Parent = tile
-
-            -- Top Title Row (Title on left, live Value on right)
-            local topRow = Instance.new("Frame")
-            topRow.Name = "TopRow"
-            topRow.Size = UDim2.new(1, 0, 0, 22)
-            topRow.BackgroundTransparency = 1
-            topRow.Parent = tile
-
-            local titleLabel = Instance.new("TextLabel")
-            titleLabel.Name = "Title"
-            titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
-            titleLabel.BackgroundTransparency = 1
-            titleLabel.Text = title
-            titleLabel.TextColor3 = theme.onBackground
-            titleLabel.TextSize = 15
-            titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-            ApplyFont(titleLabel, "Bold")
-            titleLabel.Parent = topRow
-
-            local valueLabel = Instance.new("TextLabel")
-            valueLabel.Name = "Value"
-            valueLabel.Size = UDim2.new(0.3, 0, 1, 0)
-            valueLabel.AnchorPoint = Vector2.new(1, 0)
-            valueLabel.Position = UDim2.fromScale(1, 0)
-            valueLabel.BackgroundTransparency = 1
-            valueLabel.Text = valueFormat(defaultVal)
-            valueLabel.TextColor3 = theme.primary
-            valueLabel.TextSize = 14
-            valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-            ApplyFont(valueLabel, "Medium")
-            valueLabel.Parent = topRow
-
-            -- Slider Track / Rail Holder
-            local sliderContainer = Instance.new("Frame")
-            sliderContainer.Name = "SliderContainer"
-            sliderContainer.AnchorPoint = Vector2.new(0.5, 1)
-            sliderContainer.Position = UDim2.new(0.5, 0, 1, -2)
-            sliderContainer.Size = UDim2.new(1, 0, 0, 24)
-            sliderContainer.BackgroundTransparency = 1
-            sliderContainer.Parent = tile
-
-            -- Background Rail (4px high)
-            local rail = Instance.new("Frame")
-            rail.Name = "Rail"
-            rail.AnchorPoint = Vector2.new(0.5, 0.5)
-            rail.Position = UDim2.fromScale(0.5, 0.5)
-            rail.Size = UDim2.new(1, 0, 0, 4)
-            rail.BackgroundColor3 = theme.secondaryContainer
-            rail.BorderSizePixel = 0
-            rail.Parent = sliderContainer
-
-            local railCorner = Instance.new("UICorner")
-            railCorner.CornerRadius = UDim.new(1, 0)
-            railCorner.Parent = rail
-
-            -- Filled Bar
-            local fill = Instance.new("Frame")
-            fill.Name = "Fill"
-            fill.AnchorPoint = Vector2.new(0, 0.5)
-            fill.Position = UDim2.fromScale(0, 0.5)
-            fill.Size = UDim2.fromScale(0, 1)
-            fill.BackgroundColor3 = theme.primary
-            fill.BorderSizePixel = 0
-            fill.Parent = rail
-
-            local fillCorner = Instance.new("UICorner")
-            fillCorner.CornerRadius = UDim.new(1, 0)
-            fillCorner.Parent = fill
-
-            -- Thumb (Material circle)
-            local thumb = Instance.new("Frame")
-            thumb.Name = "Thumb"
-            thumb.AnchorPoint = Vector2.new(0.5, 0.5)
-            thumb.Position = UDim2.fromScale(0, 0.5)
-            thumb.Size = UDim2.fromOffset(16, 16)
-            thumb.BackgroundColor3 = theme.primary
-            thumb.BorderSizePixel = 0
-            thumb.Parent = rail
-
-            local thumbCorner = Instance.new("UICorner")
-            thumbCorner.CornerRadius = UDim.new(1, 0)
-            thumbCorner.Parent = thumb
-
-            local currentValue = defaultVal
-            local isDragging = false
-
-            local function Snap(val)
-                local snapped = math.floor((val - minVal) / step + 0.5) * step + minVal
-                return math.clamp(snapped, minVal, maxVal)
-            end
-
-            local function SetFromValue(val, triggerCallback, animate)
-                currentValue = Snap(val)
-                local percent = math.clamp((currentValue - minVal) / (maxVal - minVal), 0, 1)
-                valueLabel.Text = valueFormat(currentValue)
-
-                local duration = animate and 0.15 or 0.04
-                local tInfo = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-                Tween(fill, tInfo, { Size = UDim2.fromScale(percent, 1) })
-                Tween(thumb, tInfo, { Position = UDim2.fromScale(percent, 0.5) })
-
-                if triggerCallback then
-                    task.spawn(callback, currentValue)
-                end
-            end
-
-            local function UpdateFromInput(input)
-                local mouseX = input.Position.X
-                local railX = rail.AbsolutePosition.X
-                local railWidth = rail.AbsoluteSize.X
-                local ratio = math.clamp((mouseX - railX) / railWidth, 0, 1)
-                local rawVal = minVal + (maxVal - minVal) * ratio
-                SetFromValue(rawVal, true, false)
-            end
-
-            sliderContainer.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    isDragging = true
-                    Tween(thumb, TweenInfo.new(0.15), { Size = UDim2.fromOffset(20, 20) })
-                    UpdateFromInput(input)
-                end
-            end)
-
-            UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    if isDragging then
-                        isDragging = false
-                        Tween(thumb, TweenInfo.new(0.15), { Size = UDim2.fromOffset(16, 16) })
-                    end
-                end
-            end)
-
-            UserInputService.InputChanged:Connect(function(input)
-                if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                    UpdateFromInput(input)
-                end
-            end)
-
-            SetFromValue(defaultVal, false, false)
-
-            local SliderObj = {
-                Value = currentValue,
-                Tile = tile,
-            }
-
-            function SliderObj:Set(val)
-                SetFromValue(val, true, true)
-                SliderObj.Value = currentValue
-            end
-
-            return SliderObj
-        end
-
-        -- ==============================================================
-        -- COMPONENT: ColorTile (Material 3 Color Picker Tile)
+        -- COMPONENT: ColorTile ("Color Scheme" with Swatch + Chevron >)
         -- ==============================================================
         function TabObj:CreateColorPicker(options)
             options = options or {}
-            local title = options.Title or "Color"
+            local title = options.Title or "Color Scheme"
             local desc = options.Description or ""
             local icon = options.Icon or MaterialUI.Icons.Palette
-            local currentColor = options.Default or Color3.fromRGB(255, 110, 40)
+            local currentColor = options.Default or theme.primary
             local callback = options.Callback or function() end
 
             TabObj.ItemCount = TabObj.ItemCount + 1
 
             local container = Instance.new("Frame")
             container.Name = "ColorTileContainer_" .. title
-            container.Size = UDim2.new(1, 0, 0, desc ~= "" and 68 or 54)
-            container.AutomaticSize = Enum.AutomaticSize.None
+            container.Size = UDim2.new(1, 0, 0, desc ~= "" and 68 or 52)
             container.ClipsDescendants = true
             container.BackgroundTransparency = 1
             container.LayoutOrder = TabObj.ItemCount
@@ -980,7 +730,7 @@ function MaterialUI:CreateWindow(config)
 
             local tile = Instance.new("TextButton")
             tile.Name = "HeaderButton"
-            tile.Size = UDim2.new(1, 0, 0, desc ~= "" and 68 or 54)
+            tile.Size = UDim2.new(1, 0, 0, desc ~= "" and 68 or 52)
             tile.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             tile.BackgroundTransparency = 1
             tile.AutoButtonColor = false
@@ -995,8 +745,8 @@ function MaterialUI:CreateWindow(config)
             local tilePadding = Instance.new("UIPadding")
             tilePadding.PaddingLeft = UDim.new(0, 16)
             tilePadding.PaddingRight = UDim.new(0, 16)
-            tilePadding.PaddingTop = UDim.new(0, 8)
-            tilePadding.PaddingBottom = UDim.new(0, 8)
+            tilePadding.PaddingTop = UDim.new(0, 10)
+            tilePadding.PaddingBottom = UDim.new(0, 10)
             tilePadding.Parent = tile
 
             -- Left Content
@@ -1004,7 +754,7 @@ function MaterialUI:CreateWindow(config)
             leftContainer.Name = "LeftAlign"
             leftContainer.AnchorPoint = Vector2.new(0, 0.5)
             leftContainer.Position = UDim2.fromScale(0, 0.5)
-            leftContainer.Size = UDim2.new(1, -64, 1, 0)
+            leftContainer.Size = UDim2.new(1, -76, 1, 0)
             leftContainer.BackgroundTransparency = 1
             leftContainer.Parent = tile
 
@@ -1012,6 +762,7 @@ function MaterialUI:CreateWindow(config)
             leftLayout.FillDirection = Enum.FillDirection.Horizontal
             leftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             leftLayout.Padding = UDim.new(0, 14)
+            leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
             leftLayout.Parent = leftContainer
 
             local iconLabel = Instance.new("ImageLabel")
@@ -1020,15 +771,18 @@ function MaterialUI:CreateWindow(config)
             iconLabel.BackgroundTransparency = 1
             iconLabel.Image = icon
             iconLabel.ImageColor3 = theme.onBackground
+            iconLabel.LayoutOrder = 1
             iconLabel.Parent = leftContainer
 
             local textHolder = Instance.new("Frame")
             textHolder.Name = "TextHolder"
             textHolder.Size = UDim2.new(1, -38, 1, 0)
             textHolder.BackgroundTransparency = 1
+            textHolder.LayoutOrder = 2
             textHolder.Parent = leftContainer
 
             local textLayout = Instance.new("UIListLayout")
+            textLayout.SortOrder = Enum.SortOrder.LayoutOrder
             textLayout.FillDirection = Enum.FillDirection.Vertical
             textLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             textLayout.Padding = UDim.new(0, 2)
@@ -1042,6 +796,7 @@ function MaterialUI:CreateWindow(config)
             titleLabel.TextColor3 = theme.onBackground
             titleLabel.TextSize = 15
             titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            titleLabel.LayoutOrder = 1
             ApplyFont(titleLabel, "Bold")
             titleLabel.Parent = textHolder
 
@@ -1054,29 +809,45 @@ function MaterialUI:CreateWindow(config)
                 descLabel.TextColor3 = theme.onSurfaceVariant
                 descLabel.TextSize = 12
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                descLabel.LayoutOrder = 2
                 ApplyFont(descLabel, "Regular")
                 descLabel.Parent = textHolder
             end
 
-            -- Right Color Swatch Circle (30x30)
+            -- Right Content: Color Swatch Circle + Right Chevron Arrow (>)
+            local rightContainer = Instance.new("Frame")
+            rightContainer.Name = "RightAlign"
+            rightContainer.AnchorPoint = Vector2.new(1, 0.5)
+            rightContainer.Position = UDim2.fromScale(1, 0.5)
+            rightContainer.Size = UDim2.new(0, 60, 1, 0)
+            rightContainer.BackgroundTransparency = 1
+            rightContainer.Parent = tile
+
+            local rightLayout = Instance.new("UIListLayout")
+            rightLayout.FillDirection = Enum.FillDirection.Horizontal
+            rightLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+            rightLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            rightLayout.Padding = UDim.new(0, 8)
+            rightLayout.Parent = rightContainer
+
             local swatch = Instance.new("Frame")
             swatch.Name = "Swatch"
-            swatch.AnchorPoint = Vector2.new(1, 0.5)
-            swatch.Position = UDim2.fromScale(1, 0.5)
-            swatch.Size = UDim2.fromOffset(30, 30)
+            swatch.Size = UDim2.fromOffset(26, 26)
             swatch.BackgroundColor3 = currentColor
             swatch.BorderSizePixel = 0
-            swatch.Parent = tile
+            swatch.Parent = rightContainer
 
             local swatchCorner = Instance.new("UICorner")
             swatchCorner.CornerRadius = UDim.new(1, 0)
             swatchCorner.Parent = swatch
 
-            local swatchStroke = Instance.new("UIStroke")
-            swatchStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            swatchStroke.Color = theme.outline
-            swatchStroke.Thickness = 2
-            swatchStroke.Parent = swatch
+            local chevron = Instance.new("ImageLabel")
+            chevron.Name = "Chevron"
+            chevron.Size = UDim2.fromOffset(18, 18)
+            chevron.BackgroundTransparency = 1
+            chevron.Image = MaterialUI.Icons.NavigateRight
+            chevron.ImageColor3 = theme.onBackground
+            chevron.Parent = rightContainer
 
             -- Expandable Color Picker Panel (Drawer)
             local pickerPanel = Instance.new("Frame")
@@ -1111,10 +882,9 @@ function MaterialUI:CreateWindow(config)
             panelLayout.Padding = UDim.new(0, 8)
             panelLayout.Parent = pickerPanel
 
-            -- Preset Colors Palette Row
             local presetsRow = Instance.new("Frame")
             presetsRow.Name = "Presets"
-            presetsRow.Size = UDim2.new(1, 0, 0, 28)
+            presetsRow.Size = UDim2.new(1, 0, 0, 26)
             presetsRow.BackgroundTransparency = 1
             presetsRow.LayoutOrder = 1
             presetsRow.Parent = pickerPanel
@@ -1123,12 +893,12 @@ function MaterialUI:CreateWindow(config)
             presetsLayout.FillDirection = Enum.FillDirection.Horizontal
             presetsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             presetsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-            presetsLayout.Padding = UDim.new(0, 10)
+            presetsLayout.Padding = UDim.new(0, 8)
             presetsLayout.Parent = presetsRow
 
             local presetColors = {
+                Color3.fromRGB(255, 182, 140), -- Original Peach
                 Color3.fromRGB(244, 67, 54),   -- Red
-                Color3.fromRGB(255, 110, 40),  -- Orange
                 Color3.fromRGB(255, 193, 7),   -- Amber
                 Color3.fromRGB(76, 175, 80),   -- Green
                 Color3.fromRGB(0, 188, 212),   -- Cyan
@@ -1147,7 +917,7 @@ function MaterialUI:CreateWindow(config)
 
             for _, col in ipairs(presetColors) do
                 local chip = Instance.new("TextButton")
-                chip.Size = UDim2.fromOffset(24, 24)
+                chip.Size = UDim2.fromOffset(22, 22)
                 chip.BackgroundColor3 = col
                 chip.Text = ""
                 chip.BorderSizePixel = 0
@@ -1163,7 +933,6 @@ function MaterialUI:CreateWindow(config)
                 end)
             end
 
-            -- RGB Sliders in Drawer
             local function CreateRgbSlider(channelName, channelColor, getVal, setVal)
                 local sliderFrame = Instance.new("Frame")
                 sliderFrame.Name = "RgbSlider_" .. channelName
@@ -1254,19 +1023,20 @@ function MaterialUI:CreateWindow(config)
                 currentColor = Color3.new(currentColor.R, currentColor.G, v)
             end)
 
-            -- Toggle Drawer Open / Close
             local isExpanded = false
-            local baseHeight = desc ~= "" and 68 or 54
-            local expandedHeight = baseHeight + 150
+            local baseHeight = desc ~= "" and 68 or 52
+            local expandedHeight = baseHeight + 148
 
             local function TogglePicker()
                 isExpanded = not isExpanded
                 if isExpanded then
                     pickerPanel.Visible = true
+                    Tween(chevron, TweenInfo.new(0.2), { Rotation = 90 })
                     Tween(container, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                         Size = UDim2.new(1, 0, 0, expandedHeight)
                     })
                 else
+                    Tween(chevron, TweenInfo.new(0.2), { Rotation = 0 })
                     local tw = Tween(container, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
                         Size = UDim2.new(1, 0, 0, baseHeight)
                     })
@@ -1280,9 +1050,8 @@ function MaterialUI:CreateWindow(config)
 
             tile.MouseButton1Click:Connect(TogglePicker)
 
-            -- Hover feedback
             tile.MouseEnter:Connect(function()
-                Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.95 })
+                Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.96 })
             end)
             tile.MouseLeave:Connect(function()
                 Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 1 })
@@ -1302,7 +1071,228 @@ function MaterialUI:CreateWindow(config)
         end
 
         -- ==============================================================
-        -- COMPONENT: ButtonTile (Material 3 Action Button)
+        -- COMPONENT: SliderTile (With Icon + Title + Value + Rail)
+        -- ==============================================================
+        function TabObj:CreateSlider(options)
+            options = options or {}
+            local title = options.Title or "Slider"
+            local icon = options.Icon
+            local minVal = options.Min or 0
+            local maxVal = options.Max or 1
+            local step = options.Step or 0.05
+            local defaultVal = math.clamp(options.Default or minVal, minVal, maxVal)
+            local callback = options.Callback or function() end
+            local valueFormat = options.Format or function(v) return tostring(v) end
+
+            TabObj.ItemCount = TabObj.ItemCount + 1
+
+            local tile = Instance.new("Frame")
+            tile.Name = "SliderTile_" .. title
+            tile.Size = UDim2.new(1, 0, 0, 72)
+            tile.BackgroundTransparency = 1
+            tile.LayoutOrder = TabObj.ItemCount
+            tile.Parent = scrollPage
+
+            local tilePadding = Instance.new("UIPadding")
+            tilePadding.PaddingLeft = UDim.new(0, 16)
+            tilePadding.PaddingRight = UDim.new(0, 16)
+            tilePadding.PaddingTop = UDim.new(0, 10)
+            tilePadding.PaddingBottom = UDim.new(0, 10)
+            tilePadding.Parent = tile
+
+            -- Horizontal container: Icon on the left, MainHolder on the right
+            local horizontalHolder = Instance.new("Frame")
+            horizontalHolder.Size = UDim2.fromScale(1, 1)
+            horizontalHolder.BackgroundTransparency = 1
+            horizontalHolder.Parent = tile
+
+            local horizLayout = Instance.new("UIListLayout")
+            horizLayout.FillDirection = Enum.FillDirection.Horizontal
+            horizLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            horizLayout.Padding = UDim.new(0, 14)
+            horizLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            horizLayout.Parent = horizontalHolder
+
+            if icon then
+                local iconLabel = Instance.new("ImageLabel")
+                iconLabel.Name = "Icon"
+                iconLabel.Size = UDim2.fromOffset(24, 24)
+                iconLabel.BackgroundTransparency = 1
+                iconLabel.Image = icon
+                iconLabel.ImageColor3 = theme.onBackground
+                iconLabel.LayoutOrder = 1
+                iconLabel.Parent = horizontalHolder
+            end
+
+            -- MainHolder: Top row (Title + Value), Bottom row (Rail)
+            local mainHolder = Instance.new("Frame")
+            mainHolder.Name = "MainHolder"
+            mainHolder.Size = UDim2.new(1, icon and -38 or 0, 1, 0)
+            mainHolder.BackgroundTransparency = 1
+            mainHolder.LayoutOrder = 2
+            mainHolder.Parent = horizontalHolder
+
+            local mainHolderLayout = Instance.new("UIListLayout")
+            mainHolderLayout.FillDirection = Enum.FillDirection.Vertical
+            mainHolderLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            mainHolderLayout.Padding = UDim.new(0, 8)
+            mainHolderLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            mainHolderLayout.Parent = mainHolder
+
+            -- Top Row (Title left, Value right)
+            local topRow = Instance.new("Frame")
+            topRow.Name = "TopRow"
+            topRow.Size = UDim2.new(1, 0, 0, 20)
+            topRow.BackgroundTransparency = 1
+            topRow.LayoutOrder = 1
+            topRow.Parent = mainHolder
+
+            local titleLabel = Instance.new("TextLabel")
+            titleLabel.Name = "Title"
+            titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+            titleLabel.BackgroundTransparency = 1
+            titleLabel.Text = title
+            titleLabel.TextColor3 = theme.onBackground
+            titleLabel.TextSize = 15
+            titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ApplyFont(titleLabel, "Bold")
+            titleLabel.Parent = topRow
+
+            local valueLabel = Instance.new("TextLabel")
+            valueLabel.Name = "Value"
+            valueLabel.AnchorPoint = Vector2.new(1, 0)
+            valueLabel.Position = UDim2.fromScale(1, 0)
+            valueLabel.Size = UDim2.new(0.3, 0, 1, 0)
+            valueLabel.BackgroundTransparency = 1
+            valueLabel.Text = valueFormat(defaultVal)
+            valueLabel.TextColor3 = theme.onBackground -- Value in original is clean onBackground
+            valueLabel.TextSize = 14
+            valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            ApplyFont(valueLabel, "Regular")
+            valueLabel.Parent = topRow
+
+            -- Slider Rail Container
+            local sliderContainer = Instance.new("Frame")
+            sliderContainer.Name = "SliderContainer"
+            sliderContainer.Size = UDim2.new(1, 0, 0, 16)
+            sliderContainer.BackgroundTransparency = 1
+            sliderContainer.LayoutOrder = 2
+            sliderContainer.Parent = mainHolder
+
+            -- Background Rail (4px high, color secondaryContainer)
+            local rail = Instance.new("Frame")
+            rail.Name = "Rail"
+            rail.AnchorPoint = Vector2.new(0.5, 0.5)
+            rail.Position = UDim2.fromScale(0.5, 0.5)
+            rail.Size = UDim2.new(1, 0, 0, 4)
+            rail.BackgroundColor3 = theme.secondaryContainer -- Exact dark warm brown
+            rail.BorderSizePixel = 0
+            rail.Parent = sliderContainer
+
+            local railCorner = Instance.new("UICorner")
+            railCorner.CornerRadius = UDim.new(1, 0)
+            railCorner.Parent = rail
+
+            -- Filled Bar (peach color)
+            local fill = Instance.new("Frame")
+            fill.Name = "Fill"
+            fill.AnchorPoint = Vector2.new(0, 0.5)
+            fill.Position = UDim2.fromScale(0, 0.5)
+            fill.Size = UDim2.fromScale(0, 1)
+            fill.BackgroundColor3 = theme.primary
+            fill.BorderSizePixel = 0
+            fill.Parent = rail
+
+            local fillCorner = Instance.new("UICorner")
+            fillCorner.CornerRadius = UDim.new(1, 0)
+            fillCorner.Parent = fill
+
+            -- Thumb (peach circle)
+            local thumb = Instance.new("Frame")
+            thumb.Name = "Thumb"
+            thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+            thumb.Position = UDim2.fromScale(0, 0.5)
+            thumb.Size = UDim2.fromOffset(16, 16)
+            thumb.BackgroundColor3 = theme.primary
+            thumb.BorderSizePixel = 0
+            thumb.Parent = rail
+
+            local thumbCorner = Instance.new("UICorner")
+            thumbCorner.CornerRadius = UDim.new(1, 0)
+            thumbCorner.Parent = thumb
+
+            local currentValue = defaultVal
+            local isDragging = false
+
+            local function Snap(val)
+                local snapped = math.floor((val - minVal) / step + 0.5) * step + minVal
+                return math.clamp(snapped, minVal, maxVal)
+            end
+
+            local function SetFromValue(val, triggerCallback, animate)
+                currentValue = Snap(val)
+                local percent = math.clamp((currentValue - minVal) / (maxVal - minVal), 0, 1)
+                valueLabel.Text = valueFormat(currentValue)
+
+                local duration = animate and 0.15 or 0.04
+                local tInfo = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+                Tween(fill, tInfo, { Size = UDim2.fromScale(percent, 1) })
+                Tween(thumb, tInfo, { Position = UDim2.fromScale(percent, 0.5) })
+
+                if triggerCallback then
+                    task.spawn(callback, currentValue)
+                end
+            end
+
+            local function UpdateFromInput(input)
+                local mouseX = input.Position.X
+                local railX = rail.AbsolutePosition.X
+                local railWidth = rail.AbsoluteSize.X
+                local ratio = math.clamp((mouseX - railX) / railWidth, 0, 1)
+                local rawVal = minVal + (maxVal - minVal) * ratio
+                SetFromValue(rawVal, true, false)
+            end
+
+            sliderContainer.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isDragging = true
+                    Tween(thumb, TweenInfo.new(0.15), { Size = UDim2.fromOffset(20, 20) })
+                    UpdateFromInput(input)
+                end
+            end)
+
+            UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    if isDragging then
+                        isDragging = false
+                        Tween(thumb, TweenInfo.new(0.15), { Size = UDim2.fromOffset(16, 16) })
+                    end
+                end
+            end)
+
+            UserInputService.InputChanged:Connect(function(input)
+                if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    UpdateFromInput(input)
+                end
+            end)
+
+            SetFromValue(defaultVal, false, false)
+
+            local SliderObj = {
+                Value = currentValue,
+                Tile = tile,
+            }
+
+            function SliderObj:Set(val)
+                SetFromValue(val, true, true)
+                SliderObj.Value = currentValue
+            end
+
+            return SliderObj
+        end
+
+        -- ==============================================================
+        -- COMPONENT: ButtonTile (Material 3 Button)
         -- ==============================================================
         function TabObj:CreateButton(options)
             options = options or {}
@@ -1335,7 +1325,6 @@ function MaterialUI:CreateWindow(config)
             tilePadding.PaddingBottom = UDim.new(0, 8)
             tilePadding.Parent = tile
 
-            -- Left Content
             local leftContainer = Instance.new("Frame")
             leftContainer.Name = "LeftAlign"
             leftContainer.AnchorPoint = Vector2.new(0, 0.5)
@@ -1367,6 +1356,7 @@ function MaterialUI:CreateWindow(config)
             textHolder.Parent = leftContainer
 
             local textLayout = Instance.new("UIListLayout")
+            textLayout.SortOrder = Enum.SortOrder.LayoutOrder
             textLayout.FillDirection = Enum.FillDirection.Vertical
             textLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             textLayout.Padding = UDim.new(0, 2)
@@ -1380,6 +1370,7 @@ function MaterialUI:CreateWindow(config)
             titleLabel.TextColor3 = theme.onBackground
             titleLabel.TextSize = 15
             titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            titleLabel.LayoutOrder = 1
             ApplyFont(titleLabel, "Bold")
             titleLabel.Parent = textHolder
 
@@ -1392,11 +1383,11 @@ function MaterialUI:CreateWindow(config)
                 descLabel.TextColor3 = theme.onSurfaceVariant
                 descLabel.TextSize = 12
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                descLabel.LayoutOrder = 2
                 ApplyFont(descLabel, "Regular")
                 descLabel.Parent = textHolder
             end
 
-            -- Right Action Badge / Pill
             local badge = Instance.new("Frame")
             badge.Name = "ActionBadge"
             badge.AnchorPoint = Vector2.new(1, 0.5)
@@ -1419,9 +1410,8 @@ function MaterialUI:CreateWindow(config)
             ApplyFont(badgeLabel, "Bold")
             badgeLabel.Parent = badge
 
-            -- Hover & Click Tweens
             tile.MouseEnter:Connect(function()
-                Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.95 })
+                Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.96 })
                 Tween(badge, TweenInfo.new(0.18), { BackgroundColor3 = theme.primary })
                 Tween(badgeLabel, TweenInfo.new(0.18), { TextColor3 = theme.onPrimary })
             end)
@@ -1443,14 +1433,14 @@ function MaterialUI:CreateWindow(config)
         end
 
         -- ==============================================================
-        -- COMPONENT: LabelTile (Information Label)
+        -- COMPONENT: LabelTile
         -- ==============================================================
         function TabObj:CreateLabel(text, desc, icon)
             TabObj.ItemCount = TabObj.ItemCount + 1
 
             local tile = Instance.new("Frame")
             tile.Name = "LabelTile"
-            tile.Size = UDim2.new(1, 0, 0, desc and 54 or 40)
+            tile.Size = UDim2.new(1, 0, 0, desc and 52 or 38)
             tile.BackgroundTransparency = 1
             tile.LayoutOrder = TabObj.ItemCount
             tile.Parent = scrollPage
@@ -1488,6 +1478,7 @@ function MaterialUI:CreateWindow(config)
             textHolder.Parent = leftContainer
 
             local textLayout = Instance.new("UIListLayout")
+            textLayout.SortOrder = Enum.SortOrder.LayoutOrder
             textLayout.FillDirection = Enum.FillDirection.Vertical
             textLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             textLayout.Padding = UDim.new(0, 2)
@@ -1500,6 +1491,7 @@ function MaterialUI:CreateWindow(config)
             titleLabel.TextColor3 = theme.onSurface
             titleLabel.TextSize = 14
             titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            titleLabel.LayoutOrder = 1
             ApplyFont(titleLabel, "Medium")
             titleLabel.Parent = textHolder
 
@@ -1511,6 +1503,7 @@ function MaterialUI:CreateWindow(config)
                 descLabel.TextColor3 = theme.onSurfaceVariant
                 descLabel.TextSize = 12
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                descLabel.LayoutOrder = 2
                 ApplyFont(descLabel, "Regular")
                 descLabel.Parent = textHolder
             end
