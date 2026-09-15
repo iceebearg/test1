@@ -301,8 +301,11 @@ function MaterialUI:CreateWindow(config)
     tabHeaderFrame.Name = "TabHeader"
     tabHeaderFrame.AnchorPoint = Vector2.new(0.5, 0)
     tabHeaderFrame.Position = UDim2.new(0.5, 0, 0, 48)
-    tabHeaderFrame.Size = UDim2.new(1, 0, 0, 38)
-    tabHeaderFrame.BackgroundTransparency = 1
+    tabHeaderFrame.Size = UDim2.new(1, 0, 0, 40)
+    tabHeaderFrame.BackgroundColor3 = Color3.fromRGB(36, 29, 26)
+    tabHeaderFrame.BackgroundTransparency = 0.2
+    tabHeaderFrame.BorderSizePixel = 0
+    tabHeaderFrame.ZIndex = 5
     tabHeaderFrame.Visible = false
     tabHeaderFrame.Parent = mainContainer
 
@@ -325,15 +328,17 @@ function MaterialUI:CreateWindow(config)
     tabDivider.Size = UDim2.new(1, 0, 0, 1)
     tabDivider.BorderSizePixel = 0
     tabDivider.BackgroundColor3 = theme.outlineVariant
+    tabDivider.ZIndex = 6
     tabDivider.Parent = tabHeaderFrame
 
     -- Main Content Area
     local contentHolder = Instance.new("Frame")
     contentHolder.Name = "ContentHolder"
-    contentHolder.AnchorPoint = Vector2.new(0.5, 1)
-    contentHolder.Position = UDim2.fromScale(0.5, 1)
-    contentHolder.Size = UDim2.new(1, 0, 1, -49)
+    contentHolder.AnchorPoint = Vector2.new(0.5, 0)
+    contentHolder.Position = UDim2.new(0.5, 0, 0, 48)
+    contentHolder.Size = UDim2.new(1, 0, 1, -48)
     contentHolder.BackgroundTransparency = 1
+    contentHolder.ZIndex = 2
     contentHolder.Parent = mainContainer
 
     local WindowObj = {
@@ -361,25 +366,36 @@ function MaterialUI:CreateWindow(config)
     function WindowObj:CreateTab(tabName, tabIcon)
         tabName = tabName or "General"
         
+        -- When a 2nd tab is added, show the tab header and move content down
         if #WindowObj.Tabs >= 1 then
             tabHeaderFrame.Visible = true
-            contentHolder.Size = UDim2.new(1, 0, 1, -87)
+            contentHolder.Position = UDim2.new(0.5, 0, 0, 88)
+            contentHolder.Size = UDim2.new(1, 0, 1, -88)
         end
+
+        local btnWidth = math.max(92, 34 + (#tabName * 8) + (tabIcon and 20 or 0))
 
         local tabButton = Instance.new("TextButton")
         tabButton.Name = "TabBtn_" .. tabName
-        tabButton.AutomaticSize = Enum.AutomaticSize.X
-        tabButton.Size = UDim2.new(0, 0, 0, 28)
+        tabButton.Size = UDim2.new(0, btnWidth, 0, 30)
         tabButton.BackgroundColor3 = theme.surfaceVariant
-        tabButton.BackgroundTransparency = 1
+        tabButton.BackgroundTransparency = 0.4
         tabButton.Text = ""
         tabButton.AutoButtonColor = false
         tabButton.LayoutOrder = #WindowObj.Tabs + 1
+        tabButton.ZIndex = 6
         tabButton.Parent = tabHeaderFrame
 
         local tabBtnCorner = Instance.new("UICorner")
         tabBtnCorner.CornerRadius = UDim.new(1, 0)
         tabBtnCorner.Parent = tabButton
+
+        local tabStroke = Instance.new("UIStroke")
+        tabStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        tabStroke.Color = theme.primary
+        tabStroke.Thickness = 1
+        tabStroke.Transparency = 1
+        tabStroke.Parent = tabButton
 
         local tabBtnPadding = Instance.new("UIPadding")
         tabBtnPadding.PaddingLeft = UDim.new(0, 12)
@@ -393,24 +409,27 @@ function MaterialUI:CreateWindow(config)
         tabContentLayout.Padding = UDim.new(0, 6)
         tabContentLayout.Parent = tabButton
 
+        local iconImg = nil
         if tabIcon then
-            local iconImg = Instance.new("ImageLabel")
+            iconImg = Instance.new("ImageLabel")
+            iconImg.Name = "Icon"
             iconImg.Size = UDim2.fromOffset(16, 16)
             iconImg.BackgroundTransparency = 1
             iconImg.Image = tabIcon
             iconImg.ImageColor3 = theme.onSurfaceVariant
+            iconImg.ZIndex = 7
             iconImg.Parent = tabButton
         end
 
         local tabText = Instance.new("TextLabel")
         tabText.Name = "Label"
-        tabText.AutomaticSize = Enum.AutomaticSize.X
-        tabText.Size = UDim2.new(0, 0, 1, 0)
+        tabText.Size = UDim2.new(1, tabIcon and -22 or 0, 1, 0)
         tabText.BackgroundTransparency = 1
         tabText.Text = tabName
         tabText.TextColor3 = theme.onSurfaceVariant
         tabText.TextSize = 13
-        ApplyFont(tabText, "Medium")
+        tabText.ZIndex = 7
+        ApplyFont(tabText, "Bold")
         tabText.Parent = tabButton
 
         -- Scrollable Page for this Tab
@@ -450,25 +469,53 @@ function MaterialUI:CreateWindow(config)
         local function ActivateTab()
             for _, otherTab in ipairs(WindowObj.Tabs) do
                 otherTab.Page.Visible = false
-                Tween(otherTab.Button, TweenInfo.new(0.2), { BackgroundTransparency = 1 })
+                Tween(otherTab.Button, TweenInfo.new(0.18), {
+                    BackgroundColor3 = theme.surfaceVariant,
+                    BackgroundTransparency = 0.4
+                })
+                local otherStroke = otherTab.Button:FindFirstChildOfClass("UIStroke")
+                if otherStroke then
+                    Tween(otherStroke, TweenInfo.new(0.18), { Transparency = 1 })
+                end
                 local otherText = otherTab.Button:FindFirstChild("Label")
                 if otherText then
-                    Tween(otherText, TweenInfo.new(0.2), { TextColor3 = theme.onSurfaceVariant })
+                    Tween(otherText, TweenInfo.new(0.18), { TextColor3 = theme.onSurfaceVariant })
                 end
-                local otherIcon = otherTab.Button:FindFirstChildOfClass("ImageLabel")
+                local otherIcon = otherTab.Button:FindFirstChild("Icon")
                 if otherIcon then
-                    Tween(otherIcon, TweenInfo.new(0.2), { ImageColor3 = theme.onSurfaceVariant })
+                    Tween(otherIcon, TweenInfo.new(0.18), { ImageColor3 = theme.onSurfaceVariant })
                 end
             end
             scrollPage.Visible = true
-            Tween(tabButton, TweenInfo.new(0.2), { BackgroundTransparency = 0, BackgroundColor3 = theme.primaryContainer })
-            Tween(tabText, TweenInfo.new(0.2), { TextColor3 = theme.primary })
-            local activeIcon = tabButton:FindFirstChildOfClass("ImageLabel")
-            if activeIcon then
-                Tween(activeIcon, TweenInfo.new(0.2), { ImageColor3 = theme.primary })
+            Tween(tabButton, TweenInfo.new(0.18), {
+                BackgroundColor3 = theme.primaryContainer,
+                BackgroundTransparency = 0
+            })
+            Tween(tabStroke, TweenInfo.new(0.18), {
+                Transparency = 0.4,
+                Color = theme.primary
+            })
+            Tween(tabText, TweenInfo.new(0.18), {
+                TextColor3 = theme.primary
+            })
+            if iconImg then
+                Tween(iconImg, TweenInfo.new(0.18), {
+                    ImageColor3 = theme.primary
+                })
             end
             WindowObj.CurrentTab = TabObj
         end
+
+        tabButton.MouseEnter:Connect(function()
+            if WindowObj.CurrentTab ~= TabObj then
+                Tween(tabButton, TweenInfo.new(0.15), { BackgroundTransparency = 0.2 })
+            end
+        end)
+        tabButton.MouseLeave:Connect(function()
+            if WindowObj.CurrentTab ~= TabObj then
+                Tween(tabButton, TweenInfo.new(0.15), { BackgroundTransparency = 0.4 })
+            end
+        end)
 
         tabButton.MouseButton1Click:Connect(ActivateTab)
 
@@ -476,6 +523,7 @@ function MaterialUI:CreateWindow(config)
         if #WindowObj.Tabs == 1 then
             ActivateTab()
         end
+
 
         -- ==============================================================
         -- COMPONENT: SectionTitle ("Theme", "Audio", etc.)
