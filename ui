@@ -106,6 +106,7 @@ function MaterialUI:CreateWindow(config)
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightShift
     -- Exact original proportions: 375 width by 410 height
     local size = config.Size or UDim2.fromOffset(375, 410)
+    local position = config.Position or UDim2.fromScale(0.5, 0.5)
     local theme = GetTheme(primaryColor)
 
     local screenGui = Instance.new("ScreenGui")
@@ -119,7 +120,7 @@ function MaterialUI:CreateWindow(config)
     local outerContainer = Instance.new("Frame")
     outerContainer.Name = "OuterContainer"
     outerContainer.AnchorPoint = Vector2.new(0.5, 0.5)
-    outerContainer.Position = UDim2.fromScale(0.5, 0.5)
+    outerContainer.Position = position
     outerContainer.Size = size
     outerContainer.BackgroundTransparency = 1
     outerContainer.Parent = screenGui
@@ -2149,6 +2150,191 @@ function MaterialUI:CreateWindow(config)
             end
 
             return tile
+        end
+
+        -- ==============================================================
+        -- COMPONENT: CreateProfileCard (Target / Clone Inspector Card)
+        -- ==============================================================
+        function TabObj:CreateProfileCard(options)
+            options = options or {}
+            local currentUserId = options.UserId or 1
+            local currentDisplayName = options.DisplayName or "Roblox"
+            local currentUsername = options.Username or "Roblox"
+
+            TabObj.ItemCount = TabObj.ItemCount + 1
+
+            local card = Instance.new("Frame")
+            card.Name = "ProfileCard"
+            card.Size = UDim2.new(1, 0, 0, 164)
+            card.BackgroundColor3 = theme.surfaceVariant
+            card.BackgroundTransparency = 0.5
+            card.BorderSizePixel = 0
+            card.LayoutOrder = TabObj.ItemCount
+            card.Parent = scrollPage
+
+            local cardCorner = Instance.new("UICorner")
+            cardCorner.CornerRadius = UDim.new(0, 16)
+            cardCorner.Parent = card
+
+            local cardStroke = Instance.new("UIStroke")
+            cardStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            cardStroke.Color = theme.outlineVariant
+            cardStroke.Thickness = 1
+            cardStroke.Transparency = 0.4
+            cardStroke.Parent = card
+
+            local cardPadding = Instance.new("UIPadding")
+            cardPadding.PaddingTop = UDim.new(0, 14)
+            cardPadding.PaddingBottom = UDim.new(0, 14)
+            cardPadding.PaddingLeft = UDim.new(0, 14)
+            cardPadding.PaddingRight = UDim.new(0, 14)
+            cardPadding.Parent = card
+
+            local cardLayout = Instance.new("UIListLayout")
+            cardLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            cardLayout.FillDirection = Enum.FillDirection.Vertical
+            cardLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            cardLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            cardLayout.Padding = UDim.new(0, 8)
+            cardLayout.Parent = card
+
+            -- Avatar Frame (Circular)
+            local avatarOuter = Instance.new("Frame")
+            avatarOuter.Name = "AvatarOuter"
+            avatarOuter.Size = UDim2.fromOffset(68, 68)
+            avatarOuter.BackgroundColor3 = theme.surface
+            avatarOuter.BorderSizePixel = 0
+            avatarOuter.LayoutOrder = 1
+            avatarOuter.Parent = card
+
+            local outerCorner = Instance.new("UICorner")
+            outerCorner.CornerRadius = UDim.new(1, 0)
+            outerCorner.Parent = avatarOuter
+
+            local outerStroke = Instance.new("UIStroke")
+            outerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            outerStroke.Color = theme.primary
+            outerStroke.Thickness = 2
+            outerStroke.Parent = avatarOuter
+
+            local avatarImage = Instance.new("ImageLabel")
+            avatarImage.Name = "Avatar"
+            avatarImage.AnchorPoint = Vector2.new(0.5, 0.5)
+            avatarImage.Position = UDim2.fromScale(0.5, 0.5)
+            avatarImage.Size = UDim2.fromOffset(64, 64)
+            avatarImage.BackgroundTransparency = 1
+            avatarImage.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(currentUserId) .. "&w=150&h=150"
+            avatarImage.Parent = avatarOuter
+
+            local imgCorner = Instance.new("UICorner")
+            imgCorner.CornerRadius = UDim.new(1, 0)
+            imgCorner.Parent = avatarImage
+
+            -- Name & Username container
+            local textContainer = Instance.new("Frame")
+            textContainer.Name = "TextInfo"
+            textContainer.Size = UDim2.new(1, 0, 0, 36)
+            textContainer.BackgroundTransparency = 1
+            textContainer.LayoutOrder = 2
+            textContainer.Parent = card
+
+            local textList = Instance.new("UIListLayout")
+            textList.SortOrder = Enum.SortOrder.LayoutOrder
+            textList.FillDirection = Enum.FillDirection.Vertical
+            textList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            textList.VerticalAlignment = Enum.VerticalAlignment.Center
+            textList.Padding = UDim.new(0, 2)
+            textList.Parent = textContainer
+
+            local displayNameLabel = Instance.new("TextLabel")
+            displayNameLabel.Name = "DisplayName"
+            displayNameLabel.Size = UDim2.new(1, 0, 0, 18)
+            displayNameLabel.BackgroundTransparency = 1
+            displayNameLabel.Text = currentDisplayName
+            displayNameLabel.TextColor3 = theme.onSurface
+            displayNameLabel.TextSize = 16
+            displayNameLabel.TextXAlignment = Enum.TextXAlignment.Center
+            displayNameLabel.LayoutOrder = 1
+            ApplyFont(displayNameLabel, "Bold")
+            displayNameLabel.Parent = textContainer
+
+            local usernameLabel = Instance.new("TextLabel")
+            usernameLabel.Name = "Username"
+            usernameLabel.Size = UDim2.new(1, 0, 0, 14)
+            usernameLabel.BackgroundTransparency = 1
+            usernameLabel.Text = "@" .. currentUsername
+            usernameLabel.TextColor3 = theme.onSurfaceVariant
+            usernameLabel.TextSize = 12
+            usernameLabel.TextXAlignment = Enum.TextXAlignment.Center
+            usernameLabel.LayoutOrder = 2
+            ApplyFont(usernameLabel, "Regular")
+            usernameLabel.Parent = textContainer
+
+            -- User ID / Tag Badge Pill
+            local badge = Instance.new("Frame")
+            badge.Name = "Badge"
+            badge.Size = UDim2.new(0, 0, 0, 20)
+            badge.AutomaticSize = Enum.AutomaticSize.X
+            badge.BackgroundColor3 = theme.primaryContainer
+            badge.BackgroundTransparency = 0.2
+            badge.BorderSizePixel = 0
+            badge.LayoutOrder = 3
+            badge.Parent = card
+
+            local badgeCorner = Instance.new("UICorner")
+            badgeCorner.CornerRadius = UDim.new(1, 0)
+            badgeCorner.Parent = badge
+
+            local badgePadding = Instance.new("UIPadding")
+            badgePadding.PaddingLeft = UDim.new(0, 10)
+            badgePadding.PaddingRight = UDim.new(0, 10)
+            badgePadding.Parent = badge
+
+            local badgeLabel = Instance.new("TextLabel")
+            badgeLabel.Name = "Text"
+            badgeLabel.Size = UDim2.new(0, 0, 1, 0)
+            badgeLabel.AutomaticSize = Enum.AutomaticSize.X
+            badgeLabel.BackgroundTransparency = 1
+            badgeLabel.Text = "UserId: " .. tostring(currentUserId)
+            badgeLabel.TextColor3 = theme.primary
+            badgeLabel.TextSize = 11
+            ApplyFont(badgeLabel, "Bold")
+            badgeLabel.Parent = badge
+
+            local CardObj = {
+                Card = card,
+                UserId = currentUserId,
+                DisplayName = currentDisplayName,
+                Username = currentUsername,
+            }
+
+            function CardObj:SetTarget(target, targetDisplay, targetUser)
+                if typeof(target) == "Instance" and target:IsA("Player") then
+                    currentUserId = target.UserId
+                    currentDisplayName = target.DisplayName
+                    currentUsername = target.Name
+                elseif type(target) == "number" or type(target) == "string" then
+                    currentUserId = tonumber(target) or 1
+                    currentDisplayName = targetDisplay or ("User " .. tostring(currentUserId))
+                    currentUsername = targetUser or tostring(currentUserId)
+                end
+
+                CardObj.UserId = currentUserId
+                CardObj.DisplayName = currentDisplayName
+                CardObj.Username = currentUsername
+
+                displayNameLabel.Text = currentDisplayName
+                usernameLabel.Text = "@" .. currentUsername
+                badgeLabel.Text = "UserId: " .. tostring(currentUserId)
+                avatarImage.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(currentUserId) .. "&w=150&h=150"
+
+                Tween(avatarOuter, TweenInfo.new(0.15), { Size = UDim2.fromOffset(72, 72) })
+                task.delay(0.15, function()
+                    Tween(avatarOuter, TweenInfo.new(0.15), { Size = UDim2.fromOffset(68, 68) })
+                end)
+            end
+
+            return CardObj
         end
 
         return TabObj
