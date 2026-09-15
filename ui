@@ -1292,20 +1292,352 @@ function MaterialUI:CreateWindow(config)
         end
 
         -- ==============================================================
-        -- COMPONENT: ButtonTile (Material 3 Button)
+        -- COMPONENT: CreateButton (Material 3 Pill Button like "Emergency")
         -- ==============================================================
         function TabObj:CreateButton(options)
             options = options or {}
-            local title = options.Title or "Button"
+            local text = options.Text or options.Title or "Button"
             local desc = options.Description or ""
             local icon = options.Icon
+            local style = options.Style or "Filled" -- "Filled", "Tonal", or "Tile"
+            local btnColor = options.Color or theme.primary
+            local textColor = options.TextColor or theme.onPrimary
+            local callback = options.Callback or function() end
+
+            TabObj.ItemCount = TabObj.ItemCount + 1
+
+            if style == "Tile" or desc ~= "" then
+                -- Tile Style (Label on left, action badge on right)
+                local tile = Instance.new("TextButton")
+                tile.Name = "ButtonTile_" .. text
+                tile.Size = UDim2.new(1, 0, 0, desc ~= "" and 64 or 50)
+                tile.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                tile.BackgroundTransparency = 1
+                tile.AutoButtonColor = false
+                tile.Text = ""
+                tile.BorderSizePixel = 0
+                tile.LayoutOrder = TabObj.ItemCount
+                tile.Parent = scrollPage
+
+                local tileCorner = Instance.new("UICorner")
+                tileCorner.CornerRadius = UDim.new(0, 12)
+                tileCorner.Parent = tile
+
+                local tilePadding = Instance.new("UIPadding")
+                tilePadding.PaddingLeft = UDim.new(0, 16)
+                tilePadding.PaddingRight = UDim.new(0, 16)
+                tilePadding.PaddingTop = UDim.new(0, 8)
+                tilePadding.PaddingBottom = UDim.new(0, 8)
+                tilePadding.Parent = tile
+
+                local leftContainer = Instance.new("Frame")
+                leftContainer.Name = "LeftAlign"
+                leftContainer.AnchorPoint = Vector2.new(0, 0.5)
+                leftContainer.Position = UDim2.fromScale(0, 0.5)
+                leftContainer.Size = UDim2.new(1, -90, 1, 0)
+                leftContainer.BackgroundTransparency = 1
+                leftContainer.Parent = tile
+
+                local leftLayout = Instance.new("UIListLayout")
+                leftLayout.FillDirection = Enum.FillDirection.Horizontal
+                leftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                leftLayout.Padding = UDim.new(0, 14)
+                leftLayout.Parent = leftContainer
+
+                if icon then
+                    local iconLabel = Instance.new("ImageLabel")
+                    iconLabel.Name = "Icon"
+                    iconLabel.Size = UDim2.fromOffset(24, 24)
+                    iconLabel.BackgroundTransparency = 1
+                    iconLabel.Image = icon
+                    iconLabel.ImageColor3 = theme.onBackground
+                    iconLabel.Parent = leftContainer
+                end
+
+                local textHolder = Instance.new("Frame")
+                textHolder.Name = "TextHolder"
+                textHolder.Size = UDim2.new(1, icon and -38 or 0, 1, 0)
+                textHolder.BackgroundTransparency = 1
+                textHolder.Parent = leftContainer
+
+                local textLayout = Instance.new("UIListLayout")
+                textLayout.SortOrder = Enum.SortOrder.LayoutOrder
+                textLayout.FillDirection = Enum.FillDirection.Vertical
+                textLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                textLayout.Padding = UDim.new(0, 2)
+                textLayout.Parent = textHolder
+
+                local titleLabel = Instance.new("TextLabel")
+                titleLabel.Name = "Title"
+                titleLabel.Size = UDim2.new(1, 0, 0, 20)
+                titleLabel.BackgroundTransparency = 1
+                titleLabel.Text = text
+                titleLabel.TextColor3 = theme.onBackground
+                titleLabel.TextSize = 15
+                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                titleLabel.LayoutOrder = 1
+                ApplyFont(titleLabel, "Bold")
+                titleLabel.Parent = textHolder
+
+                if desc ~= "" then
+                    local descLabel = Instance.new("TextLabel")
+                    descLabel.Name = "Description"
+                    descLabel.Size = UDim2.new(1, 0, 0, 16)
+                    descLabel.BackgroundTransparency = 1
+                    descLabel.Text = desc
+                    descLabel.TextColor3 = theme.onSurfaceVariant
+                    descLabel.TextSize = 12
+                    descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                    descLabel.LayoutOrder = 2
+                    ApplyFont(descLabel, "Regular")
+                    descLabel.Parent = textHolder
+                end
+
+                local badge = Instance.new("Frame")
+                badge.Name = "ActionBadge"
+                badge.AnchorPoint = Vector2.new(1, 0.5)
+                badge.Position = UDim2.fromScale(1, 0.5)
+                badge.Size = UDim2.fromOffset(72, 32)
+                badge.BackgroundColor3 = theme.primaryContainer
+                badge.BorderSizePixel = 0
+                badge.Parent = tile
+
+                local badgeCorner = Instance.new("UICorner")
+                badgeCorner.CornerRadius = UDim.new(1, 0)
+                badgeCorner.Parent = badge
+
+                local badgeLabel = Instance.new("TextLabel")
+                badgeLabel.Size = UDim2.fromScale(1, 1)
+                badgeLabel.BackgroundTransparency = 1
+                badgeLabel.Text = options.ButtonText or "Execute"
+                badgeLabel.TextColor3 = theme.primary
+                badgeLabel.TextSize = 12
+                ApplyFont(badgeLabel, "Bold")
+                badgeLabel.Parent = badge
+
+                tile.MouseEnter:Connect(function()
+                    Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.96 })
+                    Tween(badge, TweenInfo.new(0.18), { BackgroundColor3 = theme.primary })
+                    Tween(badgeLabel, TweenInfo.new(0.18), { TextColor3 = theme.onPrimary })
+                end)
+                tile.MouseLeave:Connect(function()
+                    Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 1 })
+                    Tween(badge, TweenInfo.new(0.18), { BackgroundColor3 = theme.primaryContainer })
+                    Tween(badgeLabel, TweenInfo.new(0.18), { TextColor3 = theme.primary })
+                end)
+
+                tile.MouseButton1Click:Connect(function()
+                    Tween(badge, TweenInfo.new(0.1), { Size = UDim2.fromOffset(68, 28) })
+                    task.delay(0.1, function()
+                        Tween(badge, TweenInfo.new(0.15), { Size = UDim2.fromOffset(72, 32) })
+                    end)
+                    task.spawn(callback)
+                end)
+
+                return tile
+            else
+                -- Full Pill Button (like "Emergency" in the Material 3 Messages screen)
+                local btnContainer = Instance.new("Frame")
+                btnContainer.Name = "ButtonContainer_" .. text
+                btnContainer.Size = UDim2.new(1, 0, 0, 48)
+                btnContainer.BackgroundTransparency = 1
+                btnContainer.LayoutOrder = TabObj.ItemCount
+                btnContainer.Parent = scrollPage
+
+                local btnPadding = Instance.new("UIPadding")
+                btnPadding.PaddingLeft = UDim.new(0, 16)
+                btnPadding.PaddingRight = UDim.new(0, 16)
+                btnPadding.PaddingTop = UDim.new(0, 4)
+                btnPadding.PaddingBottom = UDim.new(0, 4)
+                btnPadding.Parent = btnContainer
+
+                local btn = Instance.new("TextButton")
+                btn.Name = "PillButton"
+                btn.Size = UDim2.fromScale(1, 1)
+                btn.BackgroundColor3 = btnColor
+                btn.BorderSizePixel = 0
+                btn.AutoButtonColor = false
+                btn.Text = ""
+                btn.Parent = btnContainer
+
+                local btnCorner = Instance.new("UICorner")
+                btnCorner.CornerRadius = UDim.new(1, 0) -- Full pill shape
+                btnCorner.Parent = btn
+
+                local contentLayout = Instance.new("UIListLayout")
+                contentLayout.FillDirection = Enum.FillDirection.Horizontal
+                contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+                contentLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                contentLayout.Padding = UDim.new(0, 8)
+                contentLayout.Parent = btn
+
+                if icon then
+                    local iconImg = Instance.new("ImageLabel")
+                    iconImg.Size = UDim2.fromOffset(20, 20)
+                    iconImg.BackgroundTransparency = 1
+                    iconImg.Image = icon
+                    iconImg.ImageColor3 = textColor
+                    iconImg.Parent = btn
+                end
+
+                local btnLabel = Instance.new("TextLabel")
+                btnLabel.AutomaticSize = Enum.AutomaticSize.X
+                btnLabel.Size = UDim2.new(0, 0, 1, 0)
+                btnLabel.BackgroundTransparency = 1
+                btnLabel.Text = text
+                btnLabel.TextColor3 = textColor
+                btnLabel.TextSize = 15
+                ApplyFont(btnLabel, "Bold")
+                btnLabel.Parent = btn
+
+                -- Hover & click states
+                btn.MouseEnter:Connect(function()
+                    Tween(btn, TweenInfo.new(0.18), { BackgroundTransparency = 0.15 })
+                end)
+                btn.MouseLeave:Connect(function()
+                    Tween(btn, TweenInfo.new(0.18), { BackgroundTransparency = 0 })
+                end)
+                btn.MouseButton1Down:Connect(function()
+                    Tween(btn, TweenInfo.new(0.08), { Size = UDim2.new(1, -4, 1, -4) })
+                end)
+                btn.MouseButton1Up:Connect(function()
+                    Tween(btn, TweenInfo.new(0.12), { Size = UDim2.fromScale(1, 1) })
+                end)
+                btn.MouseButton1Click:Connect(function()
+                    task.spawn(callback)
+                end)
+
+                local ButtonObj = {
+                    Instance = btn,
+                }
+                function ButtonObj:SetText(newText)
+                    btnLabel.Text = newText
+                end
+                return ButtonObj
+            end
+        end
+
+        -- ==============================================================
+        -- COMPONENT: CreateTextBox (Material 3 Search / Input Bar)
+        -- ==============================================================
+        function TabObj:CreateTextBox(options)
+            options = options or {}
+            local placeholder = options.Placeholder or "Search..."
+            local defaultText = options.Default or ""
+            local icon = options.Icon or MaterialUI.Icons.Clear
+            local callback = options.Callback or function() end
+
+            TabObj.ItemCount = TabObj.ItemCount + 1
+
+            local container = Instance.new("Frame")
+            container.Name = "TextBoxContainer"
+            container.Size = UDim2.new(1, 0, 0, 48)
+            container.BackgroundTransparency = 1
+            container.LayoutOrder = TabObj.ItemCount
+            container.Parent = scrollPage
+
+            local contPadding = Instance.new("UIPadding")
+            contPadding.PaddingLeft = UDim.new(0, 16)
+            contPadding.PaddingRight = UDim.new(0, 16)
+            contPadding.PaddingTop = UDim.new(0, 4)
+            contPadding.PaddingBottom = UDim.new(0, 4)
+            contPadding.Parent = container
+
+            local bar = Instance.new("Frame")
+            bar.Name = "InputBar"
+            bar.Size = UDim2.fromScale(1, 1)
+            bar.BackgroundColor3 = theme.surfaceVariant
+            bar.BorderSizePixel = 0
+            bar.Parent = container
+
+            local barCorner = Instance.new("UICorner")
+            barCorner.CornerRadius = UDim.new(1, 0) -- Pill shape search bar
+            barCorner.Parent = bar
+
+            local barStroke = Instance.new("UIStroke")
+            barStroke.Color = theme.outlineVariant
+            barStroke.Thickness = 1
+            barStroke.Transparency = 0.5
+            barStroke.Parent = bar
+
+            local barPadding = Instance.new("UIPadding")
+            barPadding.PaddingLeft = UDim.new(0, 14)
+            barPadding.PaddingRight = UDim.new(0, 14)
+            barPadding.Parent = bar
+
+            local barLayout = Instance.new("UIListLayout")
+            barLayout.FillDirection = Enum.FillDirection.Horizontal
+            barLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            barLayout.Padding = UDim.new(0, 10)
+            barLayout.Parent = bar
+
+            local searchIcon = Instance.new("ImageLabel")
+            searchIcon.Name = "SearchIcon"
+            searchIcon.Size = UDim2.fromOffset(18, 18)
+            searchIcon.BackgroundTransparency = 1
+            searchIcon.Image = MaterialUI.Icons.Clear
+            searchIcon.ImageColor3 = theme.onSurfaceVariant
+            searchIcon.Parent = bar
+
+            local textBox = Instance.new("TextBox")
+            textBox.Name = "InputField"
+            textBox.Size = UDim2.new(1, -30, 1, 0)
+            textBox.BackgroundTransparency = 1
+            textBox.PlaceholderText = placeholder
+            textBox.PlaceholderColor3 = theme.onSurfaceVariant
+            textBox.Text = defaultText
+            textBox.TextColor3 = theme.onBackground
+            textBox.TextSize = 14
+            textBox.TextXAlignment = Enum.TextXAlignment.Left
+            textBox.ClearTextOnFocus = false
+            ApplyFont(textBox, "Medium")
+            textBox.Parent = bar
+
+            textBox.Focused:Connect(function()
+                Tween(barStroke, TweenInfo.new(0.2), { Color = theme.primary, Transparency = 0 })
+                Tween(searchIcon, TweenInfo.new(0.2), { ImageColor3 = theme.primary })
+            end)
+
+            textBox.FocusLost:Connect(function()
+                Tween(barStroke, TweenInfo.new(0.2), { Color = theme.outlineVariant, Transparency = 0.5 })
+                Tween(searchIcon, TweenInfo.new(0.2), { ImageColor3 = theme.onSurfaceVariant })
+                task.spawn(callback, textBox.Text)
+            end)
+
+            textBox:GetPropertyChangedSignal("Text"):Connect(function()
+                if options.OnChanged then
+                    task.spawn(options.OnChanged, textBox.Text)
+                end
+            end)
+
+            local TextBoxObj = {
+                Instance = textBox,
+            }
+            function TextBoxObj:Get()
+                return textBox.Text
+            end
+            function TextBoxObj:Set(newText)
+                textBox.Text = newText
+            end
+            return TextBoxObj
+        end
+
+        -- ==============================================================
+        -- COMPONENT: CreateUserTile (Individual User row with avatar)
+        -- ==============================================================
+        function TabObj:CreateUserTile(options)
+            options = options or {}
+            local title = options.Title or options.Name or "User"
+            local desc = options.Description or options.Subtitle or ""
+            local userId = options.UserId or 1
+            local customIcon = options.Icon
             local callback = options.Callback or function() end
 
             TabObj.ItemCount = TabObj.ItemCount + 1
 
             local tile = Instance.new("TextButton")
-            tile.Name = "ButtonTile_" .. title
-            tile.Size = UDim2.new(1, 0, 0, desc ~= "" and 64 or 50)
+            tile.Name = "UserTile_" .. title
+            tile.Size = UDim2.new(1, 0, 0, 58)
             tile.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             tile.BackgroundTransparency = 1
             tile.AutoButtonColor = false
@@ -1325,35 +1657,39 @@ function MaterialUI:CreateWindow(config)
             tilePadding.PaddingBottom = UDim.new(0, 8)
             tilePadding.Parent = tile
 
-            local leftContainer = Instance.new("Frame")
-            leftContainer.Name = "LeftAlign"
-            leftContainer.AnchorPoint = Vector2.new(0, 0.5)
-            leftContainer.Position = UDim2.fromScale(0, 0.5)
-            leftContainer.Size = UDim2.new(1, -90, 1, 0)
-            leftContainer.BackgroundTransparency = 1
-            leftContainer.Parent = tile
-
             local leftLayout = Instance.new("UIListLayout")
             leftLayout.FillDirection = Enum.FillDirection.Horizontal
             leftLayout.VerticalAlignment = Enum.VerticalAlignment.Center
             leftLayout.Padding = UDim.new(0, 14)
-            leftLayout.Parent = leftContainer
+            leftLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            leftLayout.Parent = tile
 
-            if icon then
-                local iconLabel = Instance.new("ImageLabel")
-                iconLabel.Name = "Icon"
-                iconLabel.Size = UDim2.fromOffset(24, 24)
-                iconLabel.BackgroundTransparency = 1
-                iconLabel.Image = icon
-                iconLabel.ImageColor3 = theme.onBackground
-                iconLabel.Parent = leftContainer
+            -- Avatar Headshot Circle (38x38 px)
+            local avatarImg = Instance.new("ImageLabel")
+            avatarImg.Name = "Avatar"
+            avatarImg.Size = UDim2.fromOffset(38, 38)
+            avatarImg.BackgroundColor3 = theme.surfaceVariant
+            avatarImg.BackgroundTransparency = 0
+            avatarImg.BorderSizePixel = 0
+            avatarImg.LayoutOrder = 1
+            if customIcon then
+                avatarImg.Image = customIcon
+            else
+                avatarImg.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(userId) .. "&w=100&h=100"
             end
+            avatarImg.Parent = tile
 
+            local avatarCorner = Instance.new("UICorner")
+            avatarCorner.CornerRadius = UDim.new(1, 0) -- Circle avatar
+            avatarCorner.Parent = avatarImg
+
+            -- Text column (Title top, Subtitle bottom)
             local textHolder = Instance.new("Frame")
             textHolder.Name = "TextHolder"
-            textHolder.Size = UDim2.new(1, icon and -38 or 0, 1, 0)
+            textHolder.Size = UDim2.new(1, -54, 1, 0)
             textHolder.BackgroundTransparency = 1
-            textHolder.Parent = leftContainer
+            textHolder.LayoutOrder = 2
+            textHolder.Parent = tile
 
             local textLayout = Instance.new("UIListLayout")
             textLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1364,7 +1700,7 @@ function MaterialUI:CreateWindow(config)
 
             local titleLabel = Instance.new("TextLabel")
             titleLabel.Name = "Title"
-            titleLabel.Size = UDim2.new(1, 0, 0, 20)
+            titleLabel.Size = UDim2.new(1, 0, 0, 18)
             titleLabel.BackgroundTransparency = 1
             titleLabel.Text = title
             titleLabel.TextColor3 = theme.onBackground
@@ -1374,66 +1710,309 @@ function MaterialUI:CreateWindow(config)
             ApplyFont(titleLabel, "Bold")
             titleLabel.Parent = textHolder
 
-            if desc ~= "" then
-                local descLabel = Instance.new("TextLabel")
-                descLabel.Name = "Description"
-                descLabel.Size = UDim2.new(1, 0, 0, 16)
-                descLabel.BackgroundTransparency = 1
-                descLabel.Text = desc
-                descLabel.TextColor3 = theme.onSurfaceVariant
-                descLabel.TextSize = 12
-                descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                descLabel.LayoutOrder = 2
-                ApplyFont(descLabel, "Regular")
-                descLabel.Parent = textHolder
-            end
-
-            local badge = Instance.new("Frame")
-            badge.Name = "ActionBadge"
-            badge.AnchorPoint = Vector2.new(1, 0.5)
-            badge.Position = UDim2.fromScale(1, 0.5)
-            badge.Size = UDim2.fromOffset(72, 32)
-            badge.BackgroundColor3 = theme.primaryContainer
-            badge.BorderSizePixel = 0
-            badge.Parent = tile
-
-            local badgeCorner = Instance.new("UICorner")
-            badgeCorner.CornerRadius = UDim.new(1, 0)
-            badgeCorner.Parent = badge
-
-            local badgeLabel = Instance.new("TextLabel")
-            badgeLabel.Size = UDim2.fromScale(1, 1)
-            badgeLabel.BackgroundTransparency = 1
-            badgeLabel.Text = options.ButtonText or "Execute"
-            badgeLabel.TextColor3 = theme.primary
-            badgeLabel.TextSize = 12
-            ApplyFont(badgeLabel, "Bold")
-            badgeLabel.Parent = badge
+            local descLabel = Instance.new("TextLabel")
+            descLabel.Name = "Description"
+            descLabel.Size = UDim2.new(1, 0, 0, 14)
+            descLabel.BackgroundTransparency = 1
+            descLabel.Text = desc
+            descLabel.TextColor3 = theme.onSurfaceVariant
+            descLabel.TextSize = 12
+            descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            descLabel.LayoutOrder = 2
+            ApplyFont(descLabel, "Regular")
+            descLabel.Parent = textHolder
 
             tile.MouseEnter:Connect(function()
                 Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 0.96 })
-                Tween(badge, TweenInfo.new(0.18), { BackgroundColor3 = theme.primary })
-                Tween(badgeLabel, TweenInfo.new(0.18), { TextColor3 = theme.onPrimary })
             end)
             tile.MouseLeave:Connect(function()
                 Tween(tile, TweenInfo.new(0.18), { BackgroundTransparency = 1 })
-                Tween(badge, TweenInfo.new(0.18), { BackgroundColor3 = theme.primaryContainer })
-                Tween(badgeLabel, TweenInfo.new(0.18), { TextColor3 = theme.primary })
             end)
-
             tile.MouseButton1Click:Connect(function()
-                Tween(badge, TweenInfo.new(0.1), { Size = UDim2.fromOffset(68, 28) })
-                task.delay(0.1, function()
-                    Tween(badge, TweenInfo.new(0.15), { Size = UDim2.fromOffset(72, 32) })
-                end)
                 task.spawn(callback)
             end)
 
-            return tile
+            local UserTileObj = {
+                Tile = tile,
+            }
+            function UserTileObj:SetSubtitle(newDesc)
+                descLabel.Text = newDesc
+            end
+            return UserTileObj
         end
 
         -- ==============================================================
-        -- COMPONENT: LabelTile
+        -- COMPONENT: CreatePlayerList (Interactive Player List + Search)
+        -- ==============================================================
+        function TabObj:CreatePlayerList(options)
+            options = options or {}
+            local onPlayerClick = options.OnPlayerClick or function(player) end
+            local showSearch = options.ShowSearch ~= false
+
+            local listContainer = Instance.new("Frame")
+            listContainer.Name = "PlayerListContainer"
+            listContainer.AutomaticSize = Enum.AutomaticSize.Y
+            listContainer.Size = UDim2.new(1, 0, 0, 0)
+            listContainer.BackgroundTransparency = 1
+            TabObj.ItemCount = TabObj.ItemCount + 1
+            listContainer.LayoutOrder = TabObj.ItemCount
+            listContainer.Parent = scrollPage
+
+            local listContainerLayout = Instance.new("UIListLayout")
+            listContainerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listContainerLayout.FillDirection = Enum.FillDirection.Vertical
+            listContainerLayout.Padding = UDim.new(0, 4)
+            listContainerLayout.Parent = listContainer
+
+            local searchBox = nil
+            local searchTerm = ""
+            local playerRows = {}
+
+            if showSearch then
+                local searchFrame = Instance.new("Frame")
+                searchFrame.Name = "SearchFrame"
+                searchFrame.Size = UDim2.new(1, 0, 0, 44)
+                searchFrame.BackgroundTransparency = 1
+                searchFrame.LayoutOrder = 1
+                searchFrame.Parent = listContainer
+
+                local searchPadding = Instance.new("UIPadding")
+                searchPadding.PaddingLeft = UDim.new(0, 16)
+                searchPadding.PaddingRight = UDim.new(0, 16)
+                searchPadding.Parent = searchFrame
+
+                local bar = Instance.new("Frame")
+                bar.Size = UDim2.fromScale(1, 1)
+                bar.BackgroundColor3 = theme.surfaceVariant
+                bar.BorderSizePixel = 0
+                bar.Parent = searchFrame
+
+                local barCorner = Instance.new("UICorner")
+                barCorner.CornerRadius = UDim.new(1, 0)
+                barCorner.Parent = bar
+
+                local barStroke = Instance.new("UIStroke")
+                barStroke.Color = theme.outlineVariant
+                barStroke.Thickness = 1
+                barStroke.Transparency = 0.5
+                barStroke.Parent = bar
+
+                local barPadding = Instance.new("UIPadding")
+                barPadding.PaddingLeft = UDim.new(0, 14)
+                barPadding.PaddingRight = UDim.new(0, 14)
+                barPadding.Parent = bar
+
+                local barLayout = Instance.new("UIListLayout")
+                barLayout.FillDirection = Enum.FillDirection.Horizontal
+                barLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                barLayout.Padding = UDim.new(0, 10)
+                barLayout.Parent = bar
+
+                local icon = Instance.new("ImageLabel")
+                icon.Size = UDim2.fromOffset(18, 18)
+                icon.BackgroundTransparency = 1
+                icon.Image = MaterialUI.Icons.Clear
+                icon.ImageColor3 = theme.onSurfaceVariant
+                icon.Parent = bar
+
+                searchBox = Instance.new("TextBox")
+                searchBox.Size = UDim2.new(1, -30, 1, 0)
+                searchBox.BackgroundTransparency = 1
+                searchBox.PlaceholderText = options.SearchPlaceholder or "Search players..."
+                searchBox.PlaceholderColor3 = theme.onSurfaceVariant
+                searchBox.Text = ""
+                searchBox.TextColor3 = theme.onBackground
+                searchBox.TextSize = 13
+                searchBox.TextXAlignment = Enum.TextXAlignment.Left
+                searchBox.ClearTextOnFocus = false
+                ApplyFont(searchBox, "Medium")
+                searchBox.Parent = bar
+
+                searchBox.Focused:Connect(function()
+                    Tween(barStroke, TweenInfo.new(0.2), { Color = theme.primary, Transparency = 0 })
+                    Tween(icon, TweenInfo.new(0.2), { ImageColor3 = theme.primary })
+                end)
+                searchBox.FocusLost:Connect(function()
+                    Tween(barStroke, TweenInfo.new(0.2), { Color = theme.outlineVariant, Transparency = 0.5 })
+                    Tween(icon, TweenInfo.new(0.2), { ImageColor3 = theme.onSurfaceVariant })
+                end)
+            end
+
+            -- Container for player tiles
+            local itemsFrame = Instance.new("Frame")
+            itemsFrame.Name = "Items"
+            itemsFrame.AutomaticSize = Enum.AutomaticSize.Y
+            itemsFrame.Size = UDim2.new(1, 0, 0, 0)
+            itemsFrame.BackgroundTransparency = 1
+            itemsFrame.LayoutOrder = 2
+            itemsFrame.Parent = listContainer
+
+            local itemsLayout = Instance.new("UIListLayout")
+            itemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            itemsLayout.FillDirection = Enum.FillDirection.Vertical
+            itemsLayout.Padding = UDim.new(0, 2)
+            itemsLayout.Parent = itemsFrame
+
+            local selectedPlayer = nil
+
+            local function FilterRows()
+                for player, row in pairs(playerRows) do
+                    if searchTerm == "" then
+                        row.Visible = true
+                    else
+                        local match = player.DisplayName:lower():find(searchTerm) or player.Name:lower():find(searchTerm)
+                        row.Visible = match ~= nil
+                    end
+                end
+            end
+
+            if searchBox then
+                searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+                    searchTerm = searchBox.Text:lower()
+                    FilterRows()
+                end)
+            end
+
+            local function AddPlayerRow(player)
+                if playerRows[player] then return end
+
+                local row = Instance.new("TextButton")
+                row.Name = "Player_" .. player.Name
+                row.Size = UDim2.new(1, 0, 0, 56)
+                row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                row.BackgroundTransparency = 1
+                row.AutoButtonColor = false
+                row.Text = ""
+                row.BorderSizePixel = 0
+                row.Parent = itemsFrame
+
+                local rowCorner = Instance.new("UICorner")
+                rowCorner.CornerRadius = UDim.new(0, 12)
+                rowCorner.Parent = row
+
+                local rowPadding = Instance.new("UIPadding")
+                rowPadding.PaddingLeft = UDim.new(0, 16)
+                rowPadding.PaddingRight = UDim.new(0, 16)
+                rowPadding.PaddingTop = UDim.new(0, 6)
+                rowPadding.PaddingBottom = UDim.new(0, 6)
+                rowPadding.Parent = row
+
+                local rowLayout = Instance.new("UIListLayout")
+                rowLayout.FillDirection = Enum.FillDirection.Horizontal
+                rowLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                rowLayout.Padding = UDim.new(0, 12)
+                rowLayout.SortOrder = Enum.SortOrder.LayoutOrder
+                rowLayout.Parent = row
+
+                -- Avatar thumbnail
+                local avatar = Instance.new("ImageLabel")
+                avatar.Name = "Avatar"
+                avatar.Size = UDim2.fromOffset(38, 38)
+                avatar.BackgroundColor3 = theme.surfaceVariant
+                avatar.BorderSizePixel = 0
+                avatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(player.UserId) .. "&w=100&h=100"
+                avatar.LayoutOrder = 1
+                avatar.Parent = row
+
+                local avatarCorner = Instance.new("UICorner")
+                avatarCorner.CornerRadius = UDim.new(1, 0)
+                avatarCorner.Parent = avatar
+
+                -- Names column
+                local textHolder = Instance.new("Frame")
+                textHolder.Name = "TextHolder"
+                textHolder.Size = UDim2.new(1, -52, 1, 0)
+                textHolder.BackgroundTransparency = 1
+                textHolder.LayoutOrder = 2
+                textHolder.Parent = row
+
+                local textLayout = Instance.new("UIListLayout")
+                textLayout.SortOrder = Enum.SortOrder.LayoutOrder
+                textLayout.FillDirection = Enum.FillDirection.Vertical
+                textLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+                textLayout.Padding = UDim.new(0, 2)
+                textLayout.Parent = textHolder
+
+                local dispLabel = Instance.new("TextLabel")
+                dispLabel.Name = "DisplayName"
+                dispLabel.Size = UDim2.new(1, 0, 0, 18)
+                dispLabel.BackgroundTransparency = 1
+                dispLabel.Text = player.DisplayName
+                dispLabel.TextColor3 = theme.onBackground
+                dispLabel.TextSize = 15
+                dispLabel.TextXAlignment = Enum.TextXAlignment.Left
+                dispLabel.LayoutOrder = 1
+                ApplyFont(dispLabel, "Bold")
+                dispLabel.Parent = textHolder
+
+                local userLabel = Instance.new("TextLabel")
+                userLabel.Name = "Username"
+                userLabel.Size = UDim2.new(1, 0, 0, 14)
+                userLabel.BackgroundTransparency = 1
+                userLabel.Text = "@" .. player.Name
+                userLabel.TextColor3 = theme.onSurfaceVariant
+                userLabel.TextSize = 12
+                userLabel.TextXAlignment = Enum.TextXAlignment.Left
+                userLabel.LayoutOrder = 2
+                ApplyFont(userLabel, "Regular")
+                userLabel.Parent = textHolder
+
+                row.MouseEnter:Connect(function()
+                    if selectedPlayer ~= player then
+                        Tween(row, TweenInfo.new(0.18), { BackgroundTransparency = 0.96 })
+                    end
+                end)
+                row.MouseLeave:Connect(function()
+                    if selectedPlayer ~= player then
+                        Tween(row, TweenInfo.new(0.18), { BackgroundTransparency = 1 })
+                    end
+                end)
+
+                row.MouseButton1Click:Connect(function()
+                    -- Deselect previous
+                    for p, r in pairs(playerRows) do
+                        Tween(r, TweenInfo.new(0.15), { BackgroundTransparency = 1, BackgroundColor3 = Color3.fromRGB(255, 255, 255) })
+                    end
+                    selectedPlayer = player
+                    Tween(row, TweenInfo.new(0.15), { BackgroundTransparency = 0.85, BackgroundColor3 = theme.primary })
+                    task.spawn(onPlayerClick, player)
+                end)
+
+                playerRows[player] = row
+                FilterRows()
+            end
+
+            local function RemovePlayerRow(player)
+                local row = playerRows[player]
+                if row then
+                    playerRows[player] = nil
+                    row:Destroy()
+                end
+            end
+
+            for _, player in ipairs(Players:GetPlayers()) do
+                AddPlayerRow(player)
+            end
+
+            local conAdd = Players.PlayerAdded:Connect(AddPlayerRow)
+            local conRemove = Players.PlayerRemoving:Connect(RemovePlayerRow)
+
+            listContainer.Destroying:Connect(function()
+                conAdd:Disconnect()
+                conRemove:Disconnect()
+            end)
+
+            local ListObj = {
+                Container = listContainer,
+            }
+            function ListObj:GetSelected()
+                return selectedPlayer
+            end
+            return ListObj
+        end
+
+        -- ==============================================================
+        -- COMPONENT: CreateLabel
         -- ==============================================================
         function TabObj:CreateLabel(text, desc, icon)
             TabObj.ItemCount = TabObj.ItemCount + 1
