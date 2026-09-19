@@ -1594,7 +1594,7 @@ function NeverLose:CreateOptionWindow(Frame: Frame , Zindex)
 	OptionHandler.BorderSizePixel = 0
 	OptionHandler.ClipsDescendants = true
 	OptionHandler.Position = UDim2.new(255,255,255,255)
-	OptionHandler.Size = UDim2.new(0, 220, 0, 75)
+	OptionHandler.Size = UDim2.new(0, 245, 0, 75)
 	OptionHandler.ZIndex = Zindex + 9
 
 	UICorner.CornerRadius = UDim.new(0, 10)
@@ -1610,7 +1610,7 @@ function NeverLose:CreateOptionWindow(Frame: Frame , Zindex)
 
 	NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(function()
 		NeverLose.PlayAnimate(OptionHandler , SlowyTween , {
-			Size = UDim2.new(0, 220, 0, UIListLayout.AbsoluteContentSize.Y - 1)
+			Size = UDim2.new(0, 245, 0, UIListLayout.AbsoluteContentSize.Y - 1)
 		})
 	end)));
 
@@ -3180,6 +3180,23 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 		Config = Config or {};
 		Config.Type = Config.Type or Config.Suffix or Config.Unit or "";
 		Config.Rounding = Config.Rounding or Config.Decimals or Config.Precision or 0;
+
+		local defaultSliderSize = 85;
+		if handle and handle.DisplayName then
+			local labelSize = TextService:GetTextSize(handle.DisplayName, 13, Enum.Font.GothamMedium, Vector2.new(math.huge, math.huge));
+			if labelSize.X > 105 then
+				defaultSliderSize = 75;
+			elseif labelSize.X > 85 then
+				defaultSliderSize = 80;
+			else
+				defaultSliderSize = 85;
+			end;
+		end;
+
+		if Config.Size == nil or Config.Size == 125 then
+			Config.Size = defaultSliderSize;
+		end;
+
 		Config = NeverLose:ProcessParams(Config , {
 			Default = 50,
 			Min = 0,
@@ -3188,7 +3205,7 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 			Rounding = 0,
 			Nums = {},
 			Flag = nil,
-			Size = 125,
+			Size = defaultSliderSize,
 			Callback = EmptyFunction,
 		});
 
@@ -4927,7 +4944,9 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		BasedLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BasedLabel.BorderSizePixel = 0
 		BasedLabel.Position = UDim2.new(0, 11, 0, 6)
-		BasedLabel.Size = UDim2.new(0,1, 0, 15)
+		BasedLabel.Size = UDim2.new(1, -95, 0, 15)
+		BasedLabel.ClipsDescendants = true
+		BasedLabel.TextTruncate = Enum.TextTruncate.AtEnd
 		BasedLabel.ZIndex = LayerIndex + 9
 		BasedLabel.Font = Enum.Font.GothamMedium
 		BasedLabel.Text = Name
@@ -4967,6 +4986,20 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 
 		UICorner.CornerRadius = UDim.new(0, 10)
 		UICorner.Parent = BasedFrame
+
+		local function updateLabelBounds()
+			if not Warp then
+				local contentX = UIListLayout.AbsoluteContentSize.X;
+				if contentX > 0 then
+					BasedLabel.Size = UDim2.new(1, -(contentX + 24), 0, 15);
+				else
+					BasedLabel.Size = UDim2.new(1, -22, 0, 15);
+				end;
+			end;
+		end;
+
+		NeverLose:AddSignal(UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(LPH_NO_VIRTUALIZE(updateLabelBounds)));
+		updateLabelBounds();
 
 		local UpdateWarp = LPH_NO_VIRTUALIZE(function()
 			local size = TextService:GetTextSize(BasedLabel.Text , BasedLabel.TextSize , BasedLabel.Font , Vector2.new(math.huge,math.huge));
