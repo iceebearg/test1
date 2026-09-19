@@ -10452,7 +10452,14 @@ function NeverLose:CreateLogger()
 	return Logging;
 end;
 
-function NeverLose:CreateIndicator()
+function NeverLose:CreateIndicator(Config)
+	if NeverLose.__Indicator_Cache then
+		if typeof(Config) == "table" and Config ~= NeverLose then
+			return NeverLose.__Indicator_Cache.new(Config);
+		end;
+		return NeverLose.__Indicator_Cache;
+	end;
+
 	local IndicatorFrame = Instance.new("Frame")
 	local UIListLayout = Instance.new("UIListLayout")
 
@@ -10476,12 +10483,38 @@ function NeverLose:CreateIndicator()
 	Indicators.Color = {
 		Red = Color3.fromRGB(255, 102, 105),
 		Green = Color3.fromRGB(135, 255, 143),
+		Blue = Color3.fromRGB(78, 127, 252),
+		Yellow = Color3.fromRGB(255, 215, 0),
+		Purple = Color3.fromRGB(180, 100, 255),
+		Cyan = Color3.fromRGB(0, 255, 255),
+		Orange = Color3.fromRGB(255, 165, 0),
 		White = Color3.fromRGB(186, 186, 186),
 	};
 
+	local function resolveColor(c)
+		if typeof(c) == "Color3" then
+			return c;
+		end;
+		if typeof(c) == "string" then
+			if Indicators.Color[c] then
+				return Indicators.Color[c];
+			end;
+			local cap = c:sub(1,1):upper() .. c:sub(2):lower();
+			if Indicators.Color[cap] then
+				return Indicators.Color[cap];
+			end;
+			if c:sub(1,1) == "#" then
+				local s, col = pcall(Color3.fromHex, c:gsub("#",""));
+				if s and col then return col end;
+			end;
+		end;
+		return Indicators.Color.White or Color3.fromRGB(186, 186, 186);
+	end;
+
 	Indicators.Root = IndicatorFrame;
 
-	function Indicators.new(Config)
+	function Indicators.new(arg1, arg2)
+		local Config = (typeof(arg1) == "table" and arg1 ~= Indicators and arg1) or (typeof(arg2) == "table" and arg2) or {};
 		Config = NeverLose:ProcessParams(Config , {
 			Name = "Indicator",
 			Icon = 'crosshairs',
@@ -10522,31 +10555,31 @@ function NeverLose:CreateIndicator()
 			end;
 		end))
 
-		UICorner.CornerRadius = UDim.new(0, 25)
+		UICorner.CornerRadius = UDim.new(0, 6)
 		UICorner.Parent = IndicatorItem
 
 		Line.Name = NeverLose.RandomString();
 		Line.Parent = IndicatorItem
 		Line.AnchorPoint = Vector2.new(0, 0.5)
-		Line.BackgroundColor3 = Color3.fromRGB(186, 186, 186)
+		Line.BackgroundColor3 = resolveColor(Indicator.CurrentColor)
+		Line.BackgroundTransparency = 1
 		Line.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Line.BorderSizePixel = 0
-		Line.Position = UDim2.new(0, 2, 0.5, 0)
-		Line.BackgroundTransparency = 1;
-		Line.Size = UDim2.new(0, 3, 0.649999976, 0)
+		Line.Position = UDim2.new(0, 0, 0.5, 0)
+		Line.Size = UDim2.new(0, 3, 1, 0)
 		Line.ZIndex = 17
 
-		UICorner_2.CornerRadius = UDim.new(0, 25)
+		UICorner_2.CornerRadius = UDim.new(1, 0)
 		UICorner_2.Parent = Line
 
+		UIGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))}
 		UIGradient.Rotation = 90
-		UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 1.00), NumberSequenceKeypoint.new(0.50, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 		UIGradient.Parent = Line
 
 		Icon.Name = NeverLose.RandomString();
 		Icon.Parent = IndicatorItem
 		Icon.AnchorPoint = Vector2.new(0, 0.5)
-		Icon.BackgroundColor3 = Color3.fromRGB(186, 186, 186)
+		Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 		Icon.BackgroundTransparency = 1.000
 		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Icon.BorderSizePixel = 0
@@ -10595,17 +10628,17 @@ function NeverLose:CreateIndicator()
 
 				NeverLose.PlayAnimate(Line , SlowyTween , {
 					BackgroundTransparency = 0,
-					BackgroundColor3 = Indicators.Color[Indicator.CurrentColor]
+					BackgroundColor3 = resolveColor(Indicator.CurrentColor)
 				});
 
 				NeverLose.PlayAnimate(Icon , VSlowTween , {
 					TextTransparency = 0.250,
-					TextColor3 = Indicators.Color[Indicator.CurrentColor]
+					TextColor3 = resolveColor(Indicator.CurrentColor)
 				});
 
 				NeverLose.PlayAnimate(Content , VSlowTween , {
 					TextTransparency = 0.2,
-					TextColor3 = Indicators.Color[Indicator.CurrentColor]
+					TextColor3 = resolveColor(Indicator.CurrentColor)
 				});
 
 				Shadow:Render(true);
@@ -10616,17 +10649,17 @@ function NeverLose:CreateIndicator()
 
 				NeverLose.PlayAnimate(Line , SlowyTween , {
 					BackgroundTransparency = 1,
-					BackgroundColor3 = Indicators.Color[Indicator.CurrentColor]
+					BackgroundColor3 = resolveColor(Indicator.CurrentColor)
 				});
 
 				NeverLose.PlayAnimate(Icon , VSlowTween , {
 					TextTransparency = 1,
-					TextColor3 = Indicators.Color[Indicator.CurrentColor]
+					TextColor3 = resolveColor(Indicator.CurrentColor)
 				});
 
 				NeverLose.PlayAnimate(Content , VSlowTween , {
 					TextTransparency = 1,
-					TextColor3 = Indicators.Color[Indicator.CurrentColor]
+					TextColor3 = resolveColor(Indicator.CurrentColor)
 				});
 
 				Shadow:Render(false);
@@ -10655,6 +10688,15 @@ function NeverLose:CreateIndicator()
 		end;
 
 		return Indicator;
+	end;
+
+	Indicators.Add = Indicators.new;
+	Indicators.Create = Indicators.new;
+
+	NeverLose.__Indicator_Cache = Indicators;
+
+	if typeof(Config) == "table" and Config ~= NeverLose then
+		return Indicators.new(Config);
 	end;
 
 	return Indicators;
