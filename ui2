@@ -276,12 +276,17 @@ if getcustomasset then
 		pcall(makefolder, dir);
 	end;
 	pcall(function()
-		if not isfile(dir..'/'..'logo.png') then
+		if isfile(dir..'/'..'DevourIcon.png') then
+			local asset = getcustomasset(dir..'/'..'DevourIcon.png');
+			if asset and asset ~= "" then
+				NeverLose.GlobalLogo = asset;
+			end;
+		elseif not isfile(dir..'/'..'logo.png') then
 			local byte = game:HttpGet('https://raw.githubusercontent.com/shitarouse/ui/refs/heads/main/logo.png');
 			writefile(dir..'/'..'logo.png', byte);
 			task.wait();
 		end;
-		if isfile(dir..'/'..'logo.png') then
+		if (not NeverLose.GlobalLogo or NeverLose.GlobalLogo == "rbxassetid://120358385035996") and isfile(dir..'/'..'logo.png') then
 			local asset = getcustomasset(dir..'/'..'logo.png');
 			if asset and asset ~= "" then
 				NeverLose.GlobalLogo = asset;
@@ -6493,9 +6498,9 @@ end;
 
 function NeverLose:CreateWindow(Config)
 	Config = Config or {};
-	Config.Name = Config.Name or Config.Title or "Neverlose";
-	Config.Content = Config.Content or Config.SubTitle or "UI Library";
-	Config.ConfigFolder = Config.ConfigFolder or "NeverloseCfg";
+	Config.Name = Config.Name or Config.Title or "Devour";
+	Config.Content = Config.Content or Config.SubTitle or "by icebearg";
+	Config.ConfigFolder = Config.ConfigFolder or "DevourCfg";
 	Config.Keybind = Config.Keybind or Config.ToggleKey or "Insert";
 	Config.Logo = Config.Logo or NeverLose.GlobalLogo;
 
@@ -6517,10 +6522,10 @@ function NeverLose:CreateWindow(Config)
 
 	Config = NeverLose:ProcessParams(Config , {
 		Logo = NeverLose.GlobalLogo,
-		Name = "Neverlose",
-		Content = "UI Library",
+		Name = "Devour",
+		Content = "by icebearg",
 		Size = UDim2.new(0, 640, 0, 480),
-		ConfigFolder = "NeverloseCfg",
+		ConfigFolder = "DevourCfg",
 		Enable3DRenderer = false,
 		Keybind = "Insert"
 	});
@@ -7009,12 +7014,13 @@ function NeverLose:CreateWindow(Config)
 	LogoImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	LogoImage.BorderSizePixel = 0
 	LogoImage.Position = UDim2.new(0, 10, 0.5, 0)
-	LogoImage.Size = UDim2.new(0, 35, 0, 35)
+	LogoImage.Size = UDim2.new(0, 42, 0, 30)
+	LogoImage.ScaleType = Enum.ScaleType.Fit
 	LogoImage.ZIndex = 7
 	LogoImage.Image = Window.Logo
 	LogoImage.ImageColor3 = NeverLose.IconColor
 
-	UICorner_2.CornerRadius = UDim.new(0, 7)
+	UICorner_2.CornerRadius = UDim.new(0, 6)
 	UICorner_2.Parent = LogoImage
 
 	WindowName.Name = NeverLose.RandomString();
@@ -7023,7 +7029,7 @@ function NeverLose:CreateWindow(Config)
 	WindowName.BackgroundTransparency = 1.000
 	WindowName.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowName.BorderSizePixel = 0
-	WindowName.Position = UDim2.new(0, 55, 0, 4)
+	WindowName.Position = UDim2.new(0, 58, 0, 4)
 	WindowName.Size = UDim2.new(0, 200, 0, 25)
 	WindowName.ZIndex = 7
 	WindowName.Font = Enum.Font.GothamBold
@@ -7038,7 +7044,7 @@ function NeverLose:CreateWindow(Config)
 	WindowContent.BackgroundTransparency = 1.000
 	WindowContent.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	WindowContent.BorderSizePixel = 0
-	WindowContent.Position = UDim2.new(0, 55, 0, 25)
+	WindowContent.Position = UDim2.new(0, 58, 0, 25)
 	WindowContent.Size = UDim2.new(0, 200, 0, 15)
 	WindowContent.ZIndex = 7
 	WindowContent.Font = Enum.Font.GothamBold
@@ -10075,12 +10081,13 @@ function NeverLose:CreateNotification(Config)
 		LogoImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		LogoImage.BorderSizePixel = 0
 		LogoImage.Position = UDim2.new(0, 10, 0.5, 0)
-		LogoImage.Size = UDim2.new(0, 35, 0, 35)
+		LogoImage.Size = UDim2.new(0, 38, 0, 28)
+		LogoImage.ScaleType = Enum.ScaleType.Fit
 		LogoImage.ZIndex = 131
 		LogoImage.Image = Config.Logo
 		LogoImage.ImageColor3 = NeverLose.IconColor;
 
-		UICorner_2.CornerRadius = UDim.new(0, 7)
+		UICorner_2.CornerRadius = UDim.new(0, 6)
 		UICorner_2.Parent = LogoImage
 
 		NotifyName.Name = NeverLose.RandomString();
@@ -10089,7 +10096,7 @@ function NeverLose:CreateNotification(Config)
 		NotifyName.BackgroundTransparency = 1.000
 		NotifyName.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		NotifyName.BorderSizePixel = 0
-		NotifyName.Position = UDim2.new(0, 50, 0, 7)
+		NotifyName.Position = UDim2.new(0, 54, 0, 7)
 		NotifyName.Size = UDim2.new(0, 200, 0, 20)
 		NotifyName.ZIndex = 132
 		NotifyName.Font = Enum.Font.GothamBold
@@ -10104,7 +10111,7 @@ function NeverLose:CreateNotification(Config)
 		NotifyContent.BackgroundTransparency = 1.000
 		NotifyContent.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		NotifyContent.BorderSizePixel = 0
-		NotifyContent.Position = UDim2.new(0, 50, 0, 28)
+		NotifyContent.Position = UDim2.new(0, 54, 0, 28)
 		NotifyContent.Size = UDim2.new(0, 200, 0, 15)
 		NotifyContent.ZIndex = 132
 		NotifyContent.Font = Enum.Font.GothamBold
