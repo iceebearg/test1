@@ -2849,7 +2849,7 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 		end);
 	end;
 
-	local function OpenMenu()
+	local function OpenMenu(clickPos)
 		if NeverLose.__OpenBindMenu and NeverLose.__OpenBindMenu ~= CloseMenu then
 			NeverLose.__OpenBindMenu();
 		end;
@@ -2860,17 +2860,39 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 		KeybindData.Refresh();
 
 		local viewport = CurrentCamera and CurrentCamera.ViewportSize or Vector2.new(1920, 1080);
-		local ePos, eSize = Element.AbsolutePosition, Element.AbsoluteSize;
-		local px = ePos.X + eSize.X + 8;
+		local mousePos = pcall(function() return UserInputService:GetMouseLocation() end) and UserInputService:GetMouseLocation() or nil;
+		local cx = (clickPos and clickPos.X) or (mousePos and mousePos.X);
+		local cy = (clickPos and clickPos.Y) or (mousePos and mousePos.Y);
 
-		if px + menuWidth > viewport.X then
-			px = ePos.X - menuWidth - 8;
+		local px, py;
+		if cx and cy then
+			px = cx + 8;
+			py = cy + 4;
+
+			if px + menuWidth > viewport.X - 10 then
+				px = cx - menuWidth - 8;
+			end;
+			if px < 10 then
+				px = 10;
+			end;
+
+			if py + menuHeight > viewport.Y - 10 then
+				py = cy - menuHeight - 4;
+			end;
+			if py < 10 then
+				py = 10;
+			end;
+		else
+			local ePos, eSize = Element.AbsolutePosition, Element.AbsoluteSize;
+			px = ePos.X + 15;
+			py = ePos.Y + eSize.Y + 4;
+			if px + menuWidth > viewport.X - 10 then
+				px = math.max(10, viewport.X - menuWidth - 10);
+			end;
+			if py + menuHeight > viewport.Y - 10 then
+				py = math.max(10, ePos.Y - menuHeight - 4);
+			end;
 		end;
-
-		px = math.max(8, px);
-
-		local py = ePos.Y + (eSize.Y / 2) - (menuHeight / 2);
-		py = math.clamp(py, 8, math.max(8, viewport.Y - menuHeight - 8));
 
 		BindMenu.Position = UDim2.fromOffset(px, py);
 		BindMenu.Size = UDim2.new(0, menuWidth, 0, 0);
@@ -2917,7 +2939,7 @@ function NeverLose:CreateElementKeybind(Element, ElementType, GetValue, SetValue
 				if menuOpen then
 					CloseMenu();
 				else
-					OpenMenu();
+					OpenMenu(input.Position);
 				end;
 			end;
 		end))));
@@ -9245,6 +9267,8 @@ function NeverLose:CreateWindow(Config)
 			WatermarkBlur:SetValue(value);
 
 			if value then
+				Watermark.Visible = true;
+				Watermark.Parent = NeverLose.ScreenGui;
 				NeverLose.PlayAnimate(Watermark,SlowyTween , {
 					BackgroundTransparency = 0.380
 				})
@@ -9255,6 +9279,8 @@ function NeverLose:CreateWindow(Config)
 					pcall(v,true);
 				end;
 			else
+				Watermark.Visible = false;
+				Watermark.BackgroundTransparency = 1;
 				NeverLose.PlayAnimate(Watermark,SlowyTween , {
 					BackgroundTransparency = 1
 				})
