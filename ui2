@@ -4562,6 +4562,12 @@ function NeverLose:RegisiterHandler(Handler: Frame , Signal)
 	handle.AddTextBox = handle.AddTextInput;
 	handle.CreateInput = handle.AddTextInput;
 	handle.CreateTextBox = handle.AddTextInput;
+	handle.CreateOption = handle.AddOption;
+	handle.AddSubMenu = handle.AddOption;
+	handle.CreateSubMenu = handle.AddOption;
+	handle.AddSubOptions = handle.AddOption;
+	handle.CreateSubOptions = handle.AddOption;
+	handle.AddDots = handle.AddOption;
 
 	return handle;
 end;
@@ -6438,6 +6444,17 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 	idx.CreateList = idx.AddList;
 	idx.CreateUserFrame = idx.AddUserFrame;
 
+	function idx:AddOption(Name, GearIcon)
+		local label = idx:AddLabel(Name or "Option");
+		return label:AddOption(GearIcon);
+	end;
+	idx.CreateOption = idx.AddOption;
+	idx.AddSubMenu = idx.AddOption;
+	idx.CreateSubMenu = idx.AddOption;
+	idx.AddSubOptions = idx.AddOption;
+	idx.CreateSubOptions = idx.AddOption;
+	idx.AddDots = idx.AddOption;
+
 	return idx;
 end;
 
@@ -6448,6 +6465,22 @@ function NeverLose:CreateWindow(Config)
 	Config.ConfigFolder = Config.ConfigFolder or "NeverloseCfg";
 	Config.Keybind = Config.Keybind or Config.ToggleKey or "Insert";
 	Config.Logo = Config.Logo or NeverLose.GlobalLogo;
+
+	if typeof(Config.Logo) == "string" and (Config.Logo:sub(1,7) == "http://" or Config.Logo:sub(1,8) == "https://") then
+		pcall(function()
+			if getcustomasset and writefile then
+				local filename = "assets/custom_logo_" .. tostring(math.abs(string.len(Config.Logo))) .. ".png";
+				if not isfolder("assets") then pcall(makefolder, "assets") end;
+				if not isfile(filename) then
+					local byte = game:HttpGet(Config.Logo);
+					writefile(filename, byte);
+				end;
+				if isfile(filename) then
+					Config.Logo = getcustomasset(filename);
+				end;
+			end;
+		end);
+	end;
 
 	Config = NeverLose:ProcessParams(Config , {
 		Logo = NeverLose.GlobalLogo,
